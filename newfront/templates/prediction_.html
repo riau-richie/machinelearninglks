@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html data-theme="corporate">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Service</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.9.4/dist/full.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-primary mb-2">🔮 Prediction Service</h1>
+            <p class="text-lg text-gray-600">ML Model via AWS API Gateway</p>
+        </div>
+
+        <div class="card bg-base-100 shadow-lg mb-8">
+            <div class="card-body">
+                <h2 class="card-title">Input Parameters</h2>
+                <form id="prediction-form" class="space-y-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Feature 1 (0-1)</span>
+                        </label>
+                        <input type="number" id="feature1" class="input input-bordered" min="0" max="1" step="0.01" value="0.5" required>
+                    </div>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Feature 2 (0-1)</span>
+                        </label>
+                        <input type="number" id="feature2" class="input input-bordered" min="0" max="1" step="0.01" value="0.7" required>
+                    </div>
+                    <div class="form-control">
+                        <button type="submit" class="btn btn-primary">
+                            <span id="predict-btn-text">Predict</span>
+                            <span id="predict-spinner" class="loading loading-spinner loading-sm hidden"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card bg-base-100 shadow-lg">
+            <div class="card-body">
+                <h2 class="card-title">Results</h2>
+                <div class="overflow-x-auto">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-table">
+                            <!-- Filled by JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-4 p-4 bg-blue-50 rounded-lg">
+                    <div class="text-xl font-semibold">Prediction Score:</div>
+                    <div class="radial-progress text-primary text-4xl font-bold mt-2" 
+                         id="prediction-circle" 
+                         style="--value:0; --size:12rem; --thickness:1rem;">
+                        <span id="prediction-value">0</span>%
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('prediction-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const btnText = document.getElementById('predict-btn-text');
+    const spinner = document.getElementById('predict-spinner');
+    const feature1 = parseFloat(document.getElementById('feature1').value);
+    const feature2 = parseFloat(document.getElementById('feature2').value);
+    
+    btnText.textContent = 'Predicting...';
+    spinner.classList.remove('hidden');
+    
+    try {
+        const response = await fetch('/api/predict', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                feature1: feature1,
+                feature2: feature2
+            })
+        });
+        
+        // Debugging
+        console.log("Raw response:", response);
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log("Response data:", data);
+        
+        // Update UI
+        document.getElementById('results-table').innerHTML = `
+            <tr><td>Feature 1</td><td>${feature1}</td></tr>
+            <tr><td>Feature 2</td><td>${feature2}</td></tr>
+        `;
+        
+        const score = Math.round(data.prediction * 100);
+        document.getElementById('prediction-value').textContent = score;
+        
+        // Animate progress
+        animatePrediction(score);
+        
+        } catch (error) {
+            console.error('Prediction error:', error);
+            alert(`Error: ${error.message}\n\nCheck console for details`);
+        } finally {
+            btnText.textContent = 'Predict';
+            spinner.classList.add('hidden');
+        }
+    });
+
+    function animatePrediction(target) {
+        const element = document.getElementById('prediction-circle');
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 2;
+            element.style.setProperty('--value', Math.min(progress, target));
+            if (progress >= target) clearInterval(interval);
+        }, 20);
+    }
+    </script>
+</body>
+</html>
