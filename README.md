@@ -13,6 +13,6 @@
 `AWS_SESSION_TOKEN=yoursessionToken`<br/>
 
 ### Flask Config
-FLASK_HOST=0.0.0.0
-FLASK_PORT=5000
-FLASK_DEBUG=true
+FLASK_HOST=0.0.0.0<br/>
+FLASK_PORT=5000<br/>
+FLASK_DEBUG=true<br/>
