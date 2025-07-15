@@ -1,0 +1,14 @@
+front/*
+
+newfront/menv/*
+newfront/venv/*
+newfront/lambda/python/*
+newfront/lambda/venv/*
+newfront/layer.zip
+newfront/app_.py
+
+newfront/.env*
+lambda/*
+
+
+testing/*
