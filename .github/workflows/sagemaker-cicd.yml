@@ -21,38 +21,39 @@ jobs:
       AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
 
     steps:
-    - name: Debug Info
-      run: |
-        echo "Workflow triggered!"
-        echo "Event name: ${{ github.event_name }}"
-        echo "Branch: ${{ github.ref }}"
-        git diff --name-only HEAD^ HEAD || echo "No previous commit to compare"
-
-    - name: Checkout code
+    - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: Install unzip
-      run: sudo apt-get update && sudo apt install -y unzip
-    - name: Install AWS CLI
+    - name: Install unzip and AWS CLI
       run: |
+        set -e
+        sudo apt-get update
+        sudo apt-get install -y unzip curl
         curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-        unzip awscliv2.zip
+        unzip -q awscliv2.zip
         sudo ./aws/install
+        aws --version
 
-    - name: Test AWS Connection
+    - name: Verify AWS Credentials
       run: |
+        set -e
         aws sts get-caller-identity
-        aws sagemaker list-notebook-instances --max-items 1
+        aws sagemaker list-notebook-instances --max-items 5
 
-    - name: Deploy to SageMaker Notebook
+    - name: Deploy Lifecycle Configuration
       run: |
+        set -e
         SCRIPT_PATH="machine_learning/script/on-start.sh"
         CONFIG_NAME="notebook-config-$(date +%Y%m%d%H%M%S)"
 
+        echo "::group::Find SageMaker Notebook Instance"
         INSTANCE_NAME=$(aws sagemaker list-notebook-instances \
           --status-equals InService \
           --query "NotebookInstances[0].NotebookInstanceName" \
           --output text)
+        echo "Notebook Instance: $INSTANCE_NAME"
+        echo "::endgroup::"
+
         if [ -z "$INSTANCE_NAME" ] || [ "$INSTANCE_NAME" = "None" ]; then
           echo "::error::No active SageMaker notebook instance found"
           exit 1
@@ -61,27 +62,29 @@ jobs:
         cp "$SCRIPT_PATH" lifecycle_script.sh
         chmod +x lifecycle_script.sh
 
+        echo "::group::Create Lifecycle Config"
         LIFECYCLE_SCRIPT=$(base64 -w 0 lifecycle_script.sh)
-
         aws sagemaker create-notebook-instance-lifecycle-config \
           --notebook-instance-lifecycle-config-name "$CONFIG_NAME" \
           --on-start Content="$LIFECYCLE_SCRIPT"
+        echo "::endgroup::"
 
+        echo "::group::Attach Lifecycle Config to Notebook"
         aws sagemaker update-notebook-instance \
           --notebook-instance-name "$INSTANCE_NAME" \
           --lifecycle-config-name "$CONFIG_NAME"
+        echo "::endgroup::"
 
+        echo "::group::Restart Notebook Instance"
         aws sagemaker stop-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
         while [ "$(aws sagemaker describe-notebook-instance \
           --notebook-instance-name "$INSTANCE_NAME" \
-          --query "NotebookInstanceStatus" \
-          --output text)" != "Stopped" ]; do
+          --query "NotebookInstanceStatus" --output text)" != "Stopped" ]; do
+          echo "Waiting for notebook to stop..."
           sleep 5
         done
-        aws sagemaker start-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
 
-        echo "::notice::Notebook instance update initiated successfully"
-        echo "::notice::Instance ARN: $(aws sagemaker describe-notebook-instance \
-          --notebook-instance-name "$INSTANCE_NAME" \
-          --query "NotebookInstanceArn" \
-          --output text)"
+        aws sagemaker start-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
+        echo "::endgroup::"
+
+        echo "::notice::Notebook instance updated with lifecycle configuration successfully"
