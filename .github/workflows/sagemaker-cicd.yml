@@ -24,16 +24,29 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: Install unzip and AWS CLI
+    - name: Install/Update AWS CLI
       run: |
         set -e
         sudo apt-get update
         sudo apt-get install -y unzip curl
+        
+        # Download and install/update AWS CLI
         curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
         unzip -q awscliv2.zip
-        sudo ./aws/install --update
+        
+        # Check if AWS CLI exists and install/update accordingly
+        if command -v aws &> /dev/null; then
+          echo "AWS CLI found, updating..."
+          sudo ./aws/install --update
+        else
+          echo "AWS CLI not found, installing..."
+          sudo ./aws/install
+        fi
+        
+        # Clean up
+        rm -rf awscliv2.zip aws/
+        
         aws --version
-
 
     - name: Verify AWS Credentials
       run: |
@@ -60,6 +73,12 @@ jobs:
           exit 1
         fi
 
+        # Verify the script exists
+        if [ ! -f "$SCRIPT_PATH" ]; then
+          echo "::error::Script file $SCRIPT_PATH not found"
+          exit 1
+        fi
+
         cp "$SCRIPT_PATH" lifecycle_script.sh
         chmod +x lifecycle_script.sh
 
@@ -78,14 +97,41 @@ jobs:
 
         echo "::group::Restart Notebook Instance"
         aws sagemaker stop-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
+        
+        # Wait for notebook to stop with timeout
+        STOP_TIMEOUT=300  # 5 minutes
+        ELAPSED=0
         while [ "$(aws sagemaker describe-notebook-instance \
           --notebook-instance-name "$INSTANCE_NAME" \
           --query "NotebookInstanceStatus" --output text)" != "Stopped" ]; do
-          echo "Waiting for notebook to stop..."
-          sleep 5
+          if [ $ELAPSED -gt $STOP_TIMEOUT ]; then
+            echo "::error::Timeout waiting for notebook to stop"
+            exit 1
+          fi
+          echo "Waiting for notebook to stop... ($ELAPSED seconds)"
+          sleep 10
+          ELAPSED=$((ELAPSED + 10))
         done
 
         aws sagemaker start-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
+        
+        # Wait for notebook to start with timeout
+        START_TIMEOUT=300  # 5 minutes
+        ELAPSED=0
+        while [ "$(aws sagemaker describe-notebook-instance \
+          --notebook-instance-name "$INSTANCE_NAME" \
+          --query "NotebookInstanceStatus" --output text)" != "InService" ]; do
+          if [ $ELAPSED -gt $START_TIMEOUT ]; then
+            echo "::error::Timeout waiting for notebook to start"
+            exit 1
+          fi
+          echo "Waiting for notebook to start... ($ELAPSED seconds)"
+          sleep 10
+          ELAPSED=$((ELAPSED + 10))
+        done
         echo "::endgroup::"
 
         echo "::notice::Notebook instance updated with lifecycle configuration successfully"
+        
+        # Clean up temporary files
+        rm -f lifecycle_script.sh
