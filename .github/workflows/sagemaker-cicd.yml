@@ -1,4 +1,4 @@
-name: SageMaker Notebook CI/CD Pipeline
+name: SageMaker Notebook CI/CD PipelineS
 
 on:
   push:
