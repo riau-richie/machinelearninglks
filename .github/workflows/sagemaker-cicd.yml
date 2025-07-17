@@ -156,58 +156,125 @@ jobs:
         echo "Created lifecycle config: $CONFIG_NAME"
         echo "::endgroup::"
 
-        echo "::group::Get Current Notebook Status"
+        echo "::group::Handle Notebook Instance Status"
         CURRENT_STATUS=$(aws sagemaker describe-notebook-instance \
           --notebook-instance-name "$INSTANCE_NAME" \
           --query "NotebookInstanceStatus" --output text)
         echo "Current status: $CURRENT_STATUS"
-        echo "::endgroup::"
-
-        echo "::group::Attach Lifecycle Config to Notebook"
-        if [ "$CURRENT_STATUS" != "Stopped" ]; then
-          echo "Stopping notebook instance first..."
-          aws sagemaker stop-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
+        
+        # Function to wait for a specific status
+        wait_for_status() {
+          local target_status="$1"
+          local timeout="$2"
+          local elapsed=0
           
-          # Wait for notebook to stop
-          echo "Waiting for notebook to stop..."
-          STOP_TIMEOUT=600  # 10 minutes
-          ELAPSED=0
           while [ "$(aws sagemaker describe-notebook-instance \
             --notebook-instance-name "$INSTANCE_NAME" \
-            --query "NotebookInstanceStatus" --output text)" != "Stopped" ]; do
-            if [ $ELAPSED -gt $STOP_TIMEOUT ]; then
-              echo "::error::Timeout waiting for notebook to stop"
-              exit 1
+            --query "NotebookInstanceStatus" --output text)" != "$target_status" ]; do
+            if [ $elapsed -gt $timeout ]; then
+              echo "::error::Timeout waiting for status: $target_status"
+              return 1
             fi
-            echo "Waiting for notebook to stop... ($ELAPSED seconds)"
-            sleep 15
-            ELAPSED=$((ELAPSED + 15))
+            local current=$(aws sagemaker describe-notebook-instance \
+              --notebook-instance-name "$INSTANCE_NAME" \
+              --query "NotebookInstanceStatus" --output text)
+            echo "Current status: $current, waiting for: $target_status ($elapsed seconds)"
+            sleep 20
+            elapsed=$((elapsed + 20))
           done
-        fi
+          echo "✓ Status reached: $target_status"
+        }
+        
+        # Handle different statuses
+        case "$CURRENT_STATUS" in
+          "InService")
+            echo "Notebook is running, stopping it..."
+            aws sagemaker stop-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
+            wait_for_status "Stopped" 900  # 15 minutes
+            ;;
+          "Updating")
+            echo "Notebook is updating, waiting for completion..."
+            # Wait for updating to complete (could go to InService or Stopped)
+            WAIT_TIMEOUT=1200  # 20 minutes
+            ELAPSED=0
+            while [ "$(aws sagemaker describe-notebook-instance \
+              --notebook-instance-name "$INSTANCE_NAME" \
+              --query "NotebookInstanceStatus" --output text)" = "Updating" ]; do
+              if [ $ELAPSED -gt $WAIT_TIMEOUT ]; then
+                echo "::error::Timeout waiting for update to complete"
+                exit 1
+              fi
+              echo "Still updating... ($ELAPSED seconds)"
+              sleep 30
+              ELAPSED=$((ELAPSED + 30))
+            done
+            
+            # Check final status after update
+            FINAL_STATUS=$(aws sagemaker describe-notebook-instance \
+              --notebook-instance-name "$INSTANCE_NAME" \
+              --query "NotebookInstanceStatus" --output text)
+            echo "Update completed, final status: $FINAL_STATUS"
+            
+            if [ "$FINAL_STATUS" = "InService" ]; then
+              echo "Stopping notebook after update..."
+              aws sagemaker stop-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
+              wait_for_status "Stopped" 900  # 15 minutes
+            fi
+            ;;
+          "Stopping")
+            echo "Notebook is stopping, waiting..."
+            wait_for_status "Stopped" 900  # 15 minutes
+            ;;
+          "Pending")
+            echo "Notebook is starting, waiting..."
+            wait_for_status "InService" 900  # 15 minutes
+            echo "Stopping notebook..."
+            aws sagemaker stop-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
+            wait_for_status "Stopped" 900  # 15 minutes
+            ;;
+          "Stopped")
+            echo "Notebook is already stopped, good to proceed"
+            ;;
+          "Failed")
+            echo "Notebook is in failed state, good to proceed"
+            ;;
+          *)
+            echo "Unknown status: $CURRENT_STATUS"
+            echo "::error::Cannot handle notebook status: $CURRENT_STATUS"
+            exit 1
+            ;;
+        esac
+        echo "::endgroup::"
 
+        echo "::group::Update Notebook Configuration"
+        # Now the notebook should be in Stopped or Failed state
+        FINAL_STATUS=$(aws sagemaker describe-notebook-instance \
+          --notebook-instance-name "$INSTANCE_NAME" \
+          --query "NotebookInstanceStatus" --output text)
+        echo "Final status before update: $FINAL_STATUS"
+        
+        if [ "$FINAL_STATUS" != "Stopped" ] && [ "$FINAL_STATUS" != "Failed" ]; then
+          echo "::error::Notebook is not in correct state for update: $FINAL_STATUS"
+          exit 1
+        fi
+        
         aws sagemaker update-notebook-instance \
           --notebook-instance-name "$INSTANCE_NAME" \
           --lifecycle-config-name "$CONFIG_NAME"
+        echo "✓ Lifecycle configuration attached"
         echo "::endgroup::"
 
         echo "::group::Start Notebook Instance"
+        # Wait for update to complete first
+        echo "Waiting for configuration update to complete..."
+        wait_for_status "Stopped" 600  # 10 minutes
+        
+        echo "Starting notebook instance..."
         aws sagemaker start-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
         
         # Wait for notebook to start
         echo "Waiting for notebook to start..."
-        START_TIMEOUT=600  # 10 minutes
-        ELAPSED=0
-        while [ "$(aws sagemaker describe-notebook-instance \
-          --notebook-instance-name "$INSTANCE_NAME" \
-          --query "NotebookInstanceStatus" --output text)" != "InService" ]; do
-          if [ $ELAPSED -gt $START_TIMEOUT ]; then
-            echo "::error::Timeout waiting for notebook to start"
-            exit 1
-          fi
-          echo "Waiting for notebook to start... ($ELAPSED seconds)"
-          sleep 15
-          ELAPSED=$((ELAPSED + 15))
-        done
+        wait_for_status "InService" 900  # 15 minutes
         echo "::endgroup::"
 
         echo "::notice::Notebook instance updated with lifecycle configuration successfully"
