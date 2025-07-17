@@ -27,7 +27,7 @@ jobs:
         echo "Branch: ${{ github.ref }}"
         echo "Changed files:"
         git diff --name-only HEAD^ HEAD || echo "No previous commit to compare"
-        
+
     - name: Checkout code
       uses: actions/checkout@v4
 
@@ -46,15 +46,13 @@ jobs:
 
     - name: Deploy to SageMaker Notebook
       run: |
-        # Generate unique config name
         CONFIG_NAME="notebook-config-$(date +%Y%m%d%H%M%S)"
-        
-        # Get active notebook instance
+
         INSTANCE_NAME=$(aws sagemaker list-notebook-instances \
           --status-equals InService \
           --query "NotebookInstances[0].NotebookInstanceName" \
           --output text)
-        
+
         if [ -z "$INSTANCE_NAME" ] || [ "$INSTANCE_NAME" = "None" ]; then
           echo "::error::No active SageMaker notebook instance found"
           exit 1
@@ -62,8 +60,7 @@ jobs:
 
         echo "Target instance: $INSTANCE_NAME"
 
-        # Create lifecycle configuration script
-        cat << 'EOF' > lifecycle_script.sh
+        cat > lifecycle_script.sh << 'EOF'
 #!/bin/bash
 set -e
 
@@ -145,26 +142,21 @@ sudo -u ec2-user nohup jupyter notebook --allow-root &> /var/log/jupyter.log &
 echo "Lifecycle configuration completed successfully"
 EOF
 
-        # Base64 encode the script
         LIFECYCLE_SCRIPT=$(base64 -w 0 lifecycle_script.sh)
 
-        # Create new lifecycle configuration
         echo "Creating lifecycle configuration..."
         aws sagemaker create-notebook-instance-lifecycle-config \
           --notebook-instance-lifecycle-config-name "$CONFIG_NAME" \
           --on-start Content="$LIFECYCLE_SCRIPT"
 
-        # Update notebook instance
         echo "Updating notebook instance..."
         aws sagemaker update-notebook-instance \
           --notebook-instance-name "$INSTANCE_NAME" \
           --lifecycle-config-name "$CONFIG_NAME"
 
-        # Restart instance
         echo "Restarting instance..."
         aws sagemaker stop-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
-        
-        # Wait for instance to stop
+
         echo -n "Waiting for instance to stop"
         while [ "$(aws sagemaker describe-notebook-instance \
           --notebook-instance-name "$INSTANCE_NAME" \
@@ -174,10 +166,9 @@ EOF
           sleep 5
         done
         echo ""
-        
-        # Start instance
+
         aws sagemaker start-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
-        
+
         echo "::notice::Notebook instance update initiated successfully"
         echo "::notice::Instance ARN: $(aws sagemaker describe-notebook-instance \
           --notebook-instance-name "$INSTANCE_NAME" \
