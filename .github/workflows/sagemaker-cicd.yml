@@ -11,13 +11,17 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30  # Increased timeout for creation
 
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
       AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+
+    outputs:
+      notebook-instance-name: ${{ steps.create-notebook.outputs.notebook-instance-name }}
+      lifecycle-config-name: ${{ steps.create-notebook.outputs.lifecycle-config-name }}
 
     steps:
     - name: Checkout Repository
@@ -91,40 +95,16 @@ jobs:
         aws sagemaker list-notebook-instances --max-items 5
         echo "::endgroup::"
 
-    - name: Deploy Lifecycle Configuration
+    - name: Create New SageMaker Notebook Instance
+      id: create-notebook
       run: |
         set -e
         SCRIPT_PATH="machine_learning/script/on-start.sh"
-        CONFIG_NAME="notebook-config-$(date +%Y%m%d%H%M%S)"
+        TIMESTAMP=$(date +%Y%m%d%H%M%S)
+        CONFIG_NAME="notebook-config-$TIMESTAMP"
+        INSTANCE_NAME="ml-notebook-$TIMESTAMP"
 
-        echo "::group::Find SageMaker Notebook Instance"
-        INSTANCE_NAME=$(aws sagemaker list-notebook-instances \
-          --status-equals InService \
-          --query "NotebookInstances[0].NotebookInstanceName" \
-          --output text)
-        echo "Notebook Instance: $INSTANCE_NAME"
-        echo "::endgroup::"
-
-        if [ -z "$INSTANCE_NAME" ] || [ "$INSTANCE_NAME" = "None" ] || [ "$INSTANCE_NAME" = "null" ]; then
-          echo "::warning::No InService SageMaker notebook instance found"
-          echo "::group::Check All Instances"
-          aws sagemaker list-notebook-instances --query "NotebookInstances[*].[NotebookInstanceName,NotebookInstanceStatus]" --output table
-          echo "::endgroup::"
-          
-          # Try to find any notebook instance
-          INSTANCE_NAME=$(aws sagemaker list-notebook-instances \
-            --query "NotebookInstances[0].NotebookInstanceName" \
-            --output text)
-          
-          if [ -z "$INSTANCE_NAME" ] || [ "$INSTANCE_NAME" = "None" ] || [ "$INSTANCE_NAME" = "null" ]; then
-            echo "::error::No SageMaker notebook instance found at all"
-            exit 1
-          fi
-          
-          echo "::notice::Found notebook instance: $INSTANCE_NAME (not InService)"
-        fi
-
-        # Verify the script exists
+        echo "::group::Verify Script File"
         if [ ! -f "$SCRIPT_PATH" ]; then
           echo "::error::Script file $SCRIPT_PATH not found"
           echo "::group::Available files in machine_learning/script/"
@@ -132,152 +112,194 @@ jobs:
           echo "::endgroup::"
           exit 1
         fi
-
-        echo "::group::Prepare Lifecycle Script"
-        cp "$SCRIPT_PATH" lifecycle_script.sh
-        chmod +x lifecycle_script.sh
-        echo "Script size: $(wc -c < lifecycle_script.sh) bytes"
+        
+        echo "Script file found: $SCRIPT_PATH"
+        echo "Script size: $(wc -c < $SCRIPT_PATH) bytes"
         echo "::endgroup::"
 
-        echo "::group::Create Lifecycle Config"
-        LIFECYCLE_SCRIPT=$(base64 -w 0 lifecycle_script.sh)
+        echo "::group::Create Lifecycle Configuration"
+        cp "$SCRIPT_PATH" lifecycle_script.sh
+        chmod +x lifecycle_script.sh
         
-        # Check if config already exists and delete it
-        if aws sagemaker describe-notebook-instance-lifecycle-config \
-          --notebook-instance-lifecycle-config-name "$CONFIG_NAME" &>/dev/null; then
-          echo "Config already exists, deleting..."
-          aws sagemaker delete-notebook-instance-lifecycle-config \
-            --notebook-instance-lifecycle-config-name "$CONFIG_NAME"
-        fi
+        LIFECYCLE_SCRIPT=$(base64 -w 0 lifecycle_script.sh)
         
         aws sagemaker create-notebook-instance-lifecycle-config \
           --notebook-instance-lifecycle-config-name "$CONFIG_NAME" \
           --on-start Content="$LIFECYCLE_SCRIPT"
-        echo "Created lifecycle config: $CONFIG_NAME"
+        
+        echo "✓ Created lifecycle config: $CONFIG_NAME"
         echo "::endgroup::"
 
-        echo "::group::Handle Notebook Instance Status"
-        CURRENT_STATUS=$(aws sagemaker describe-notebook-instance \
-          --notebook-instance-name "$INSTANCE_NAME" \
-          --query "NotebookInstanceStatus" --output text)
-        echo "Current status: $CURRENT_STATUS"
+        echo "::group::Create Notebook Instance"
+        # Default parameters for the notebook instance
+        INSTANCE_TYPE="ml.t3.medium"  # Cost-effective for development
+        VOLUME_SIZE=20                # 20GB storage
         
-        # Function to wait for a specific status
-        wait_for_status() {
-          local target_status="$1"
-          local timeout="$2"
-          local elapsed=0
-          
-          while [ "$(aws sagemaker describe-notebook-instance \
-            --notebook-instance-name "$INSTANCE_NAME" \
-            --query "NotebookInstanceStatus" --output text)" != "$target_status" ]; do
-            if [ $elapsed -gt $timeout ]; then
-              echo "::error::Timeout waiting for status: $target_status"
-              return 1
-            fi
-            local current=$(aws sagemaker describe-notebook-instance \
-              --notebook-instance-name "$INSTANCE_NAME" \
-              --query "NotebookInstanceStatus" --output text)
-            echo "Current status: $current, waiting for: $target_status ($elapsed seconds)"
-            sleep 20
-            elapsed=$((elapsed + 20))
-          done
-          echo "✓ Status reached: $target_status"
-        }
+        # Get default VPC subnet (optional, remove if not needed)
+        DEFAULT_SUBNET=""
+        # Uncomment below if you want to specify a subnet
+        # DEFAULT_SUBNET=$(aws ec2 describe-subnets \
+        #   --filters "Name=default-for-az,Values=true" \
+        #   --query "Subnets[0].SubnetId" --output text 2>/dev/null || echo "")
         
-        # Handle different statuses
-        case "$CURRENT_STATUS" in
-          "InService")
-            echo "Notebook is running, stopping it..."
-            aws sagemaker stop-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
-            wait_for_status "Stopped" 900  # 15 minutes
-            ;;
-          "Updating")
-            echo "Notebook is updating, waiting for completion..."
-            # Wait for updating to complete (could go to InService or Stopped)
-            WAIT_TIMEOUT=1200  # 20 minutes
-            ELAPSED=0
-            while [ "$(aws sagemaker describe-notebook-instance \
-              --notebook-instance-name "$INSTANCE_NAME" \
-              --query "NotebookInstanceStatus" --output text)" = "Updating" ]; do
-              if [ $ELAPSED -gt $WAIT_TIMEOUT ]; then
-                echo "::error::Timeout waiting for update to complete"
-                exit 1
-              fi
-              echo "Still updating... ($ELAPSED seconds)"
-              sleep 30
-              ELAPSED=$((ELAPSED + 30))
-            done
-            
-            # Check final status after update
-            FINAL_STATUS=$(aws sagemaker describe-notebook-instance \
-              --notebook-instance-name "$INSTANCE_NAME" \
-              --query "NotebookInstanceStatus" --output text)
-            echo "Update completed, final status: $FINAL_STATUS"
-            
-            if [ "$FINAL_STATUS" = "InService" ]; then
-              echo "Stopping notebook after update..."
-              aws sagemaker stop-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
-              wait_for_status "Stopped" 900  # 15 minutes
-            fi
-            ;;
-          "Stopping")
-            echo "Notebook is stopping, waiting..."
-            wait_for_status "Stopped" 900  # 15 minutes
-            ;;
-          "Pending")
-            echo "Notebook is starting, waiting..."
-            wait_for_status "InService" 900  # 15 minutes
-            echo "Stopping notebook..."
-            aws sagemaker stop-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
-            wait_for_status "Stopped" 900  # 15 minutes
-            ;;
-          "Stopped")
-            echo "Notebook is already stopped, good to proceed"
-            ;;
-          "Failed")
-            echo "Notebook is in failed state, good to proceed"
-            ;;
-          *)
-            echo "Unknown status: $CURRENT_STATUS"
-            echo "::error::Cannot handle notebook status: $CURRENT_STATUS"
-            exit 1
-            ;;
-        esac
-        echo "::endgroup::"
-
-        echo "::group::Update Notebook Configuration"
-        # Now the notebook should be in Stopped or Failed state
-        FINAL_STATUS=$(aws sagemaker describe-notebook-instance \
-          --notebook-instance-name "$INSTANCE_NAME" \
-          --query "NotebookInstanceStatus" --output text)
-        echo "Final status before update: $FINAL_STATUS"
+        # Create the notebook instance
+        CREATE_ARGS=(
+          --notebook-instance-name "$INSTANCE_NAME"
+          --instance-type "$INSTANCE_TYPE"
+          --role-arn "arn:aws:iam::$(aws sts get-caller-identity --query Account --output text):role/service-role/AmazonSageMaker-ExecutionRole-*"
+          --lifecycle-config-name "$CONFIG_NAME"
+          --volume-size-in-gb $VOLUME_SIZE
+          --direct-internet-access Enabled
+        )
         
-        if [ "$FINAL_STATUS" != "Stopped" ] && [ "$FINAL_STATUS" != "Failed" ]; then
-          echo "::error::Notebook is not in correct state for update: $FINAL_STATUS"
-          exit 1
+        # Add subnet if available
+        if [ ! -z "$DEFAULT_SUBNET" ] && [ "$DEFAULT_SUBNET" != "None" ]; then
+          CREATE_ARGS+=(--subnet-id "$DEFAULT_SUBNET")
         fi
         
-        aws sagemaker update-notebook-instance \
+        # Try to create with execution role pattern, fallback to manual role
+        if ! aws sagemaker create-notebook-instance "${CREATE_ARGS[@]}" 2>/dev/null; then
+          echo "Failed with default role pattern, trying to find existing SageMaker role..."
+          
+          # Try to find existing SageMaker execution role
+          SAGEMAKER_ROLE=$(aws iam list-roles \
+            --query "Roles[?contains(RoleName, 'SageMaker') && contains(AssumeRolePolicyDocument, 'sagemaker')].Arn" \
+            --output text | head -1)
+          
+          if [ -z "$SAGEMAKER_ROLE" ]; then
+            echo "::error::No SageMaker execution role found. Please create one first."
+            echo "You can create one using AWS Console or run:"
+            echo "aws iam create-role --role-name SageMaker-ExecutionRole --assume-role-policy-document file://trust-policy.json"
+            exit 1
+          fi
+          
+          # Update role argument
+          CREATE_ARGS[3]="--role-arn"
+          CREATE_ARGS[4]="$SAGEMAKER_ROLE"
+          
+          aws sagemaker create-notebook-instance "${CREATE_ARGS[@]}"
+        fi
+        
+        echo "✓ Created notebook instance: $INSTANCE_NAME"
+        echo "Instance Type: $INSTANCE_TYPE"
+        echo "Volume Size: ${VOLUME_SIZE}GB"
+        echo "::endgroup::"
+
+        echo "::group::Wait for Notebook Instance to be Ready"
+        echo "Waiting for notebook instance to start..."
+        
+        # Wait for notebook to be InService
+        TIMEOUT=1200  # 20 minutes
+        ELAPSED=0
+        
+        while [ "$(aws sagemaker describe-notebook-instance \
           --notebook-instance-name "$INSTANCE_NAME" \
-          --lifecycle-config-name "$CONFIG_NAME"
-        echo "✓ Lifecycle configuration attached"
+          --query "NotebookInstanceStatus" --output text)" != "InService" ]; do
+          
+          if [ $ELAPSED -gt $TIMEOUT ]; then
+            echo "::error::Timeout waiting for notebook to start"
+            # Show current status for debugging
+            aws sagemaker describe-notebook-instance \
+              --notebook-instance-name "$INSTANCE_NAME" \
+              --query "{Status:NotebookInstanceStatus,Reason:FailureReason}" \
+              --output table
+            exit 1
+          fi
+          
+          CURRENT_STATUS=$(aws sagemaker describe-notebook-instance \
+            --notebook-instance-name "$INSTANCE_NAME" \
+            --query "NotebookInstanceStatus" --output text)
+          
+          echo "Current status: $CURRENT_STATUS ($ELAPSED seconds)"
+          
+          # Check for failure
+          if [ "$CURRENT_STATUS" = "Failed" ]; then
+            echo "::error::Notebook instance creation failed"
+            aws sagemaker describe-notebook-instance \
+              --notebook-instance-name "$INSTANCE_NAME" \
+              --query "{Status:NotebookInstanceStatus,Reason:FailureReason}" \
+              --output table
+            exit 1
+          fi
+          
+          sleep 30
+          ELAPSED=$((ELAPSED + 30))
+        done
+        
         echo "::endgroup::"
 
-        echo "::group::Start Notebook Instance"
-        # Wait for update to complete first
-        echo "Waiting for configuration update to complete..."
-        wait_for_status "Stopped" 600  # 10 minutes
-        
-        echo "Starting notebook instance..."
-        aws sagemaker start-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
-        
-        # Wait for notebook to start
-        echo "Waiting for notebook to start..."
-        wait_for_status "InService" 900  # 15 minutes
+        echo "::group::Notebook Instance Details"
+        aws sagemaker describe-notebook-instance \
+          --notebook-instance-name "$INSTANCE_NAME" \
+          --query "{
+            Name:NotebookInstanceName,
+            Status:NotebookInstanceStatus,
+            InstanceType:InstanceType,
+            URL:Url,
+            CreationTime:CreationTime,
+            LifecycleConfig:NotebookInstanceLifecycleConfigName
+          }" \
+          --output table
         echo "::endgroup::"
 
-        echo "::notice::Notebook instance updated with lifecycle configuration successfully"
+        echo "::notice::✅ New SageMaker notebook instance created successfully!"
+        echo "::notice::Instance Name: $INSTANCE_NAME"
+        echo "::notice::Lifecycle Config: $CONFIG_NAME"
         
         # Clean up temporary files
         rm -f lifecycle_script.sh
+        
+        # Export instance name for potential cleanup job
+        echo "NOTEBOOK_INSTANCE_NAME=$INSTANCE_NAME" >> $GITHUB_ENV
+        echo "LIFECYCLE_CONFIG_NAME=$CONFIG_NAME" >> $GITHUB_ENV
+        echo "notebook-instance-name=$INSTANCE_NAME" >> $GITHUB_OUTPUT
+        echo "lifecycle-config-name=$CONFIG_NAME" >> $GITHUB_OUTPUT
+
+  # Optional cleanup job - uncomment if you want to auto-delete after some time
+  # cleanup:
+  #   runs-on: ubuntu-latest
+  #   needs: deploy
+  #   if: always()  # Run even if deploy fails
+  #   
+  #   env:
+  #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #     AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+  #     AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+  #   
+  #   steps:
+  #   - name: Setup AWS CLI
+  #     run: |
+  #       sudo apt-get update -qq
+  #       sudo apt-get install -y unzip curl
+  #       curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+  #       unzip -q awscliv2.zip
+  #       sudo ./aws/install
+  #       rm -rf awscliv2.zip aws/
+  #   
+  #   - name: Wait and Cleanup Resources
+  #     run: |
+  #       INSTANCE_NAME="${{ needs.deploy.outputs.notebook-instance-name }}"
+  #       CONFIG_NAME="${{ needs.deploy.outputs.lifecycle-config-name }}"
+  #       
+  #       if [ ! -z "$INSTANCE_NAME" ] && [ "$INSTANCE_NAME" != "null" ]; then
+  #         echo "Waiting 30 minutes before cleanup..."
+  #         sleep 1800  # 30 minutes
+  #         
+  #         echo "Cleaning up notebook instance: $INSTANCE_NAME"
+  #         aws sagemaker stop-notebook-instance --notebook-instance-name "$INSTANCE_NAME" || true
+  #         
+  #         # Wait for stop
+  #         while [ "$(aws sagemaker describe-notebook-instance --notebook-instance-name "$INSTANCE_NAME" --query "NotebookInstanceStatus" --output text 2>/dev/null || echo "NotFound")" != "Stopped" ]; do
+  #           sleep 30
+  #         done
+  #         
+  #         aws sagemaker delete-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
+  #         echo "Deleted notebook instance: $INSTANCE_NAME"
+  #       fi
+  #       
+  #       if [ ! -z "$CONFIG_NAME" ] && [ "$CONFIG_NAME" != "null" ]; then
+  #         echo "Cleaning up lifecycle config: $CONFIG_NAME"
+  #         aws sagemaker delete-notebook-instance-lifecycle-config --notebook-instance-lifecycle-config-name "$CONFIG_NAME" || true
+  #         echo "Deleted lifecycle config: $CONFIG_NAME"
+  #       fi
