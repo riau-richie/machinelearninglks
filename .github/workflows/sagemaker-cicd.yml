@@ -27,6 +27,8 @@ jobs:
         role-session-name: GitHubActions-SageMaker-Deploy
 
     - name: Deploy to SageMaker Notebook
+      env:
+        INSTANCE_NAME: ${{ steps.get-instance.outputs.instance-name }}
       run: |
         # Generate unique config name
         CONFIG_NAME="notebook-config-$(date +%Y%m%d%H%M%S)"
@@ -135,6 +137,7 @@ sudo -u ec2-user nohup jupyter notebook --allow-root &> /var/log/jupyter.log &
 
 echo "Lifecycle configuration completed successfully"
 EOF
+        )
 
         # Create new lifecycle configuration
         echo "Creating lifecycle configuration..."
