@@ -1,0 +1,12 @@
+# Ignore all files in the lambda directory
+lambda/**
+
+# Ignore folder python in the lambda directory
+lambda/python/**
+
+# Ignore venv directory from Lambda Directory
+lambda/venv/**
+
+# Ignore folder menv and venv from newfront directory
+newfront/menv/**
+newfront/venv/**

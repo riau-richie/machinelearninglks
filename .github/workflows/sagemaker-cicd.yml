@@ -1,0 +1,173 @@
+name: SageMaker Notebook CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'machine_learning/training.ipynb'
+      - 'requirements.txt'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+        aws-region: ${{ secrets.AWS_REGION }}
+        role-to-assume: arn:aws:iam::862529903840:role/LabRole
+        role-session-name: GitHubActions-SageMaker-Deploy
+
+    - name: Deploy to SageMaker Notebook
+      run: |
+        # Generate unique config name
+        CONFIG_NAME="notebook-config-$(date +%Y%m%d%H%M%S)"
+        
+        # Get active notebook instance
+        INSTANCE_NAME=$(aws sagemaker list-notebook-instances \
+          --status-equals InService \
+          --query "NotebookInstances[0].NotebookInstanceName" \
+          --output text)
+        
+        if [ -z "$INSTANCE_NAME" ]; then
+          echo "::error::No active SageMaker notebook instance found"
+          exit 1
+        fi
+
+        echo "Target instance: $INSTANCE_NAME"
+
+        # Create lifecycle configuration
+        LIFECYCLE_SCRIPT=$(cat << 'EOF'
+#!/bin/bash
+set -e
+
+# ====================== SYSTEM SETUP ======================
+echo "Starting lifecycle configuration..."
+
+# Update system and install core packages
+sudo yum update -y
+sudo yum install -y python3 python3-devel git wget unzip
+
+# ================== PYTHON ENVIRONMENT ===================
+echo "Setting up Python environment..."
+
+# Upgrade pip and install core packages
+sudo pip3 install --upgrade pip
+sudo pip3 install --no-cache-dir \
+  boto3==1.28.0 \
+  pandas==1.5.0 \
+  numpy==1.21.0 \
+  scikit-learn==1.0.0
+
+# ================== REPOSITORY SETUP =====================
+REPO_URL="https://github.com/handipradana/machinelearninglks.git"
+TARGET_DIR="/home/ec2-user/SageMaker/machinelearninglks"
+NOTEBOOK_SRC="$TARGET_DIR/machine_learning/training.ipynb"
+NOTEBOOK_DEST="/home/ec2-user/SageMaker/training.ipynb"
+
+echo "Setting up repository..."
+if [ ! -d "$TARGET_DIR" ]; then
+  git clone "$REPO_URL" "$TARGET_DIR"
+else
+  cd "$TARGET_DIR"
+  git fetch origin
+  git reset --hard origin/main
+fi
+
+# Install additional requirements if exists
+if [ -f "$TARGET_DIR/requirements.txt" ]; then
+  echo "Installing additional requirements..."
+  sudo pip3 install --no-cache-dir -r "$TARGET_DIR/requirements.txt"
+fi
+
+# ================== JUPYTER CONFIGURATION ================
+echo "Configuring Jupyter..."
+JUPYTER_CONFIG_DIR="/home/ec2-user/.jupyter"
+JUPYTER_CONFIG="$JUPYTER_CONFIG_DIR/jupyter_server_config.py"
+
+mkdir -p "$JUPYTER_CONFIG_DIR"
+
+cat > "$JUPYTER_CONFIG" << 'JCONFIG'
+# Disable browser
+c.ServerApp.open_browser = False
+c.ServerApp.webbrowser = ""
+
+# Server settings
+c.ServerApp.ip = '0.0.0.0'
+c.ServerApp.port = 8888
+c.ServerApp.token = ''
+c.ServerApp.password = ''
+
+# Notebook settings
+c.ServerApp.notebook_dir = '/home/ec2-user/SageMaker'
+c.ServerApp.allow_origin = '*'
+c.FileContentsManager.delete_to_trash = False
+JCONFIG
+
+# ================== PERMISSIONS & CLEANUP ================
+echo "Setting permissions..."
+sudo chown -R ec2-user:ec2-user "$TARGET_DIR"
+sudo chown ec2-user:ec2-user "$JUPYTER_CONFIG"
+sudo chmod 755 "$JUPYTER_CONFIG"
+
+# Copy notebook to main directory
+if [ -f "$NOTEBOOK_SRC" ]; then
+  cp "$NOTEBOOK_SRC" "$NOTEBOOK_DEST"
+  chown ec2-user:ec2-user "$NOTEBOOK_DEST"
+fi
+
+# ================== FINALIZATION ========================
+echo "Restarting Jupyter server..."
+if pgrep -f jupyter; then
+  pkill -f jupyter
+  sleep 2
+fi
+
+sudo -u ec2-user nohup jupyter notebook --allow-root &> /var/log/jupyter.log &
+
+echo "Lifecycle configuration completed successfully"
+EOF
+
+        # Create new lifecycle configuration
+        echo "Creating lifecycle configuration..."
+        aws sagemaker create-notebook-instance-lifecycle-config \
+          --notebook-instance-lifecycle-config-name "$CONFIG_NAME" \
+          --on-start Content="$LIFECYCLE_SCRIPT"
+
+        # Update notebook instance
+        echo "Updating notebook instance..."
+        aws sagemaker update-notebook-instance \
+          --notebook-instance-name "$INSTANCE_NAME" \
+          --lifecycle-config-name "$CONFIG_NAME"
+
+        # Restart instance
+        echo "Restarting instance..."
+        aws sagemaker stop-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
+        
+        # Wait for instance to stop
+        echo -n "Waiting for instance to stop"
+        while [ "$(aws sagemaker describe-notebook-instance \
+          --notebook-instance-name "$INSTANCE_NAME" \
+          --query "NotebookInstanceStatus" \
+          --output text)" != "Stopped" ]; do
+          echo -n "."
+          sleep 5
+        done
+        echo ""
+        
+        # Start instance
+        aws sagemaker start-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
+        
+        echo "::notice::Notebook instance update initiated successfully"
+        echo "::notice::Instance ARN: $(aws sagemaker describe-notebook-instance \
+          --notebook-instance-name "$INSTANCE_NAME" \
+          --query "NotebookInstanceArn" \
+          --output text)"
