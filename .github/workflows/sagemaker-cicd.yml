@@ -2,12 +2,11 @@ name: SageMaker Notebook CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
-    paths:
-      - 'machine_learning/training.ipynb'
-      - 'requirements.txt'
-      - 'machine_learning/script/on-start.sh'
+    branches: [ main, master ]  # Support both main and master
+    # Remove path restriction for easier triggering
   workflow_dispatch:
+  pull_request:
+    branches: [ main, master ]
 
 jobs:
   deploy:
