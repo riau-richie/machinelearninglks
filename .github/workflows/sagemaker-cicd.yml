@@ -130,59 +130,42 @@ jobs:
         echo "✓ Created lifecycle config: $CONFIG_NAME"
         echo "::endgroup::"
 
+        echo "::group::Get Account ID and Build LabRole ARN"
+        ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+        LAB_ROLE_ARN="arn:aws:iam::${ACCOUNT_ID}:role/LabRole"
+        
+        echo "Account ID: $ACCOUNT_ID"
+        echo "Using LabRole ARN: $LAB_ROLE_ARN"
+        
+        # Verify the role exists
+        if ! aws iam get-role --role-name LabRole >/dev/null 2>&1; then
+          echo "::error::LabRole not found in account $ACCOUNT_ID"
+          echo "Available roles:"
+          aws iam list-roles --query "Roles[].RoleName" --output table
+          exit 1
+        fi
+        
+        echo "✓ LabRole found and accessible"
+        echo "::endgroup::"
+
         echo "::group::Create Notebook Instance"
         # Default parameters for the notebook instance
         INSTANCE_TYPE="ml.t3.medium"  # Cost-effective for development
         VOLUME_SIZE=20                # 20GB storage
         
-        # Get default VPC subnet (optional, remove if not needed)
-        DEFAULT_SUBNET=""
-        # Uncomment below if you want to specify a subnet
-        # DEFAULT_SUBNET=$(aws ec2 describe-subnets \
-        #   --filters "Name=default-for-az,Values=true" \
-        #   --query "Subnets[0].SubnetId" --output text 2>/dev/null || echo "")
-        
-        # Create the notebook instance
-        CREATE_ARGS=(
-          --notebook-instance-name "$INSTANCE_NAME"
-          --instance-type "$INSTANCE_TYPE"
-          --role-arn "arn:aws:iam::$(aws sts get-caller-identity --query Account --output text):role/service-role/AmazonSageMaker-ExecutionRole-*"
-          --lifecycle-config-name "$CONFIG_NAME"
-          --volume-size-in-gb $VOLUME_SIZE
+        # Create the notebook instance with LabRole
+        aws sagemaker create-notebook-instance \
+          --notebook-instance-name "$INSTANCE_NAME" \
+          --instance-type "$INSTANCE_TYPE" \
+          --role-arn "$LAB_ROLE_ARN" \
+          --lifecycle-config-name "$CONFIG_NAME" \
+          --volume-size-in-gb $VOLUME_SIZE \
           --direct-internet-access Enabled
-        )
-        
-        # Add subnet if available
-        if [ ! -z "$DEFAULT_SUBNET" ] && [ "$DEFAULT_SUBNET" != "None" ]; then
-          CREATE_ARGS+=(--subnet-id "$DEFAULT_SUBNET")
-        fi
-        
-        # Try to create with execution role pattern, fallback to manual role
-        if ! aws sagemaker create-notebook-instance "${CREATE_ARGS[@]}" 2>/dev/null; then
-          echo "Failed with default role pattern, trying to find existing SageMaker role..."
-          
-          # Try to find existing SageMaker execution role
-          SAGEMAKER_ROLE=$(aws iam list-roles \
-            --query "Roles[?contains(RoleName, 'SageMaker') && contains(AssumeRolePolicyDocument, 'sagemaker')].Arn" \
-            --output text | head -1)
-          
-          if [ -z "$SAGEMAKER_ROLE" ]; then
-            echo "::error::No SageMaker execution role found. Please create one first."
-            echo "You can create one using AWS Console or run:"
-            echo "aws iam create-role --role-name SageMaker-ExecutionRole --assume-role-policy-document file://trust-policy.json"
-            exit 1
-          fi
-          
-          # Update role argument
-          CREATE_ARGS[3]="--role-arn"
-          CREATE_ARGS[4]="$SAGEMAKER_ROLE"
-          
-          aws sagemaker create-notebook-instance "${CREATE_ARGS[@]}"
-        fi
         
         echo "✓ Created notebook instance: $INSTANCE_NAME"
         echo "Instance Type: $INSTANCE_TYPE"
         echo "Volume Size: ${VOLUME_SIZE}GB"
+        echo "IAM Role: $LAB_ROLE_ARN"
         echo "::endgroup::"
 
         echo "::group::Wait for Notebook Instance to be Ready"
@@ -237,7 +220,8 @@ jobs:
             InstanceType:InstanceType,
             URL:Url,
             CreationTime:CreationTime,
-            LifecycleConfig:NotebookInstanceLifecycleConfigName
+            LifecycleConfig:NotebookInstanceLifecycleConfigName,
+            RoleArn:RoleArn
           }" \
           --output table
         echo "::endgroup::"
@@ -245,6 +229,7 @@ jobs:
         echo "::notice::✅ New SageMaker notebook instance created successfully!"
         echo "::notice::Instance Name: $INSTANCE_NAME"
         echo "::notice::Lifecycle Config: $CONFIG_NAME"
+        echo "::notice::IAM Role: $LAB_ROLE_ARN"
         
         # Clean up temporary files
         rm -f lifecycle_script.sh
