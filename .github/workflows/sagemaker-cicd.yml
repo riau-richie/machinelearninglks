@@ -33,8 +33,8 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
         aws-region: ${{ secrets.AWS_REGION }}
-        role-to-assume: arn:aws:iam::862529903840:role/LabRole
-        role-session-name: GitHubActions-SageMaker-Deploy
+        # role-to-assume: arn:aws:iam::862529903840:role/LabRole
+        # role-session-name: GitHubActions-SageMaker-Deploy
 
     - name: Deploy to SageMaker Notebook
       run: |
