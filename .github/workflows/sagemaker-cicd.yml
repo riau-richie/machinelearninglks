@@ -1,4 +1,4 @@
-name: SageMaker Notebook CI/CD PipelineS
+name: SageMaker Notebook CI/CD Pipeline
 
 on:
   push:
@@ -24,35 +24,73 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: Install/Update AWS CLI
+    - name: Debug - Check File Structure
+      run: |
+        echo "::group::Repository Structure"
+        find . -type f -name "*.ipynb" -o -name "*.sh" -o -name "requirements.txt" | head -20
+        echo "::endgroup::"
+        
+        echo "::group::Check Target Files"
+        if [ -f "machine_learning/training.ipynb" ]; then
+          echo "✓ training.ipynb found"
+        else
+          echo "✗ training.ipynb NOT found"
+        fi
+        
+        if [ -f "requirements.txt" ]; then
+          echo "✓ requirements.txt found"
+        else
+          echo "✗ requirements.txt NOT found"
+        fi
+        
+        if [ -f "machine_learning/script/on-start.sh" ]; then
+          echo "✓ on-start.sh found"
+          echo "Content preview:"
+          head -10 "machine_learning/script/on-start.sh"
+        else
+          echo "✗ on-start.sh NOT found"
+        fi
+        echo "::endgroup::"
+
+    - name: Setup AWS CLI
       run: |
         set -e
-        sudo apt-get update
+        echo "::group::Update system packages"
+        sudo apt-get update -qq
         sudo apt-get install -y unzip curl
+        echo "::endgroup::"
         
-        # Download and install/update AWS CLI
+        echo "::group::Install/Update AWS CLI"
+        # Remove any existing AWS CLI installation
+        sudo rm -rf /usr/local/aws-cli /usr/local/bin/aws /usr/local/bin/aws_completer 2>/dev/null || true
+        
+        # Download and install latest AWS CLI
         curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
         unzip -q awscliv2.zip
-        
-        # Check if AWS CLI exists and install/update accordingly
-        if command -v aws &> /dev/null; then
-          echo "AWS CLI found, updating..."
-          sudo ./aws/install --update
-        else
-          echo "AWS CLI not found, installing..."
-          sudo ./aws/install
-        fi
+        sudo ./aws/install
         
         # Clean up
         rm -rf awscliv2.zip aws/
         
+        # Verify installation
         aws --version
+        echo "::endgroup::"
 
     - name: Verify AWS Credentials
       run: |
         set -e
+        echo "::group::Check AWS Configuration"
+        echo "AWS Region: $AWS_DEFAULT_REGION"
+        echo "AWS Access Key ID: ${AWS_ACCESS_KEY_ID:0:10}..."
+        echo "::endgroup::"
+        
+        echo "::group::Test AWS Connection"
         aws sts get-caller-identity
+        echo "::endgroup::"
+        
+        echo "::group::List SageMaker Instances"
         aws sagemaker list-notebook-instances --max-items 5
+        echo "::endgroup::"
 
     - name: Deploy Lifecycle Configuration
       run: |
@@ -68,55 +106,97 @@ jobs:
         echo "Notebook Instance: $INSTANCE_NAME"
         echo "::endgroup::"
 
-        if [ -z "$INSTANCE_NAME" ] || [ "$INSTANCE_NAME" = "None" ]; then
-          echo "::error::No active SageMaker notebook instance found"
-          exit 1
+        if [ -z "$INSTANCE_NAME" ] || [ "$INSTANCE_NAME" = "None" ] || [ "$INSTANCE_NAME" = "null" ]; then
+          echo "::warning::No InService SageMaker notebook instance found"
+          echo "::group::Check All Instances"
+          aws sagemaker list-notebook-instances --query "NotebookInstances[*].[NotebookInstanceName,NotebookInstanceStatus]" --output table
+          echo "::endgroup::"
+          
+          # Try to find any notebook instance
+          INSTANCE_NAME=$(aws sagemaker list-notebook-instances \
+            --query "NotebookInstances[0].NotebookInstanceName" \
+            --output text)
+          
+          if [ -z "$INSTANCE_NAME" ] || [ "$INSTANCE_NAME" = "None" ] || [ "$INSTANCE_NAME" = "null" ]; then
+            echo "::error::No SageMaker notebook instance found at all"
+            exit 1
+          fi
+          
+          echo "::notice::Found notebook instance: $INSTANCE_NAME (not InService)"
         fi
 
         # Verify the script exists
         if [ ! -f "$SCRIPT_PATH" ]; then
           echo "::error::Script file $SCRIPT_PATH not found"
+          echo "::group::Available files in machine_learning/script/"
+          ls -la machine_learning/script/ 2>/dev/null || echo "Directory not found"
+          echo "::endgroup::"
           exit 1
         fi
 
+        echo "::group::Prepare Lifecycle Script"
         cp "$SCRIPT_PATH" lifecycle_script.sh
         chmod +x lifecycle_script.sh
+        echo "Script size: $(wc -c < lifecycle_script.sh) bytes"
+        echo "::endgroup::"
 
         echo "::group::Create Lifecycle Config"
         LIFECYCLE_SCRIPT=$(base64 -w 0 lifecycle_script.sh)
+        
+        # Check if config already exists and delete it
+        if aws sagemaker describe-notebook-instance-lifecycle-config \
+          --notebook-instance-lifecycle-config-name "$CONFIG_NAME" &>/dev/null; then
+          echo "Config already exists, deleting..."
+          aws sagemaker delete-notebook-instance-lifecycle-config \
+            --notebook-instance-lifecycle-config-name "$CONFIG_NAME"
+        fi
+        
         aws sagemaker create-notebook-instance-lifecycle-config \
           --notebook-instance-lifecycle-config-name "$CONFIG_NAME" \
           --on-start Content="$LIFECYCLE_SCRIPT"
+        echo "Created lifecycle config: $CONFIG_NAME"
+        echo "::endgroup::"
+
+        echo "::group::Get Current Notebook Status"
+        CURRENT_STATUS=$(aws sagemaker describe-notebook-instance \
+          --notebook-instance-name "$INSTANCE_NAME" \
+          --query "NotebookInstanceStatus" --output text)
+        echo "Current status: $CURRENT_STATUS"
         echo "::endgroup::"
 
         echo "::group::Attach Lifecycle Config to Notebook"
+        if [ "$CURRENT_STATUS" != "Stopped" ]; then
+          echo "Stopping notebook instance first..."
+          aws sagemaker stop-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
+          
+          # Wait for notebook to stop
+          echo "Waiting for notebook to stop..."
+          STOP_TIMEOUT=600  # 10 minutes
+          ELAPSED=0
+          while [ "$(aws sagemaker describe-notebook-instance \
+            --notebook-instance-name "$INSTANCE_NAME" \
+            --query "NotebookInstanceStatus" --output text)" != "Stopped" ]; do
+            if [ $ELAPSED -gt $STOP_TIMEOUT ]; then
+              echo "::error::Timeout waiting for notebook to stop"
+              exit 1
+            fi
+            echo "Waiting for notebook to stop... ($ELAPSED seconds)"
+            sleep 15
+            ELAPSED=$((ELAPSED + 15))
+          done
+        fi
+
         aws sagemaker update-notebook-instance \
           --notebook-instance-name "$INSTANCE_NAME" \
           --lifecycle-config-name "$CONFIG_NAME"
         echo "::endgroup::"
 
-        echo "::group::Restart Notebook Instance"
-        aws sagemaker stop-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
-        
-        # Wait for notebook to stop with timeout
-        STOP_TIMEOUT=300  # 5 minutes
-        ELAPSED=0
-        while [ "$(aws sagemaker describe-notebook-instance \
-          --notebook-instance-name "$INSTANCE_NAME" \
-          --query "NotebookInstanceStatus" --output text)" != "Stopped" ]; do
-          if [ $ELAPSED -gt $STOP_TIMEOUT ]; then
-            echo "::error::Timeout waiting for notebook to stop"
-            exit 1
-          fi
-          echo "Waiting for notebook to stop... ($ELAPSED seconds)"
-          sleep 10
-          ELAPSED=$((ELAPSED + 10))
-        done
-
+        echo "::group::Start Notebook Instance"
         aws sagemaker start-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
         
-        # Wait for notebook to start with timeout
-        START_TIMEOUT=300  # 5 minutes
+        # Wait for notebook to start
+        echo "Waiting for notebook to start..."
+        START_TIMEOUT=600  # 10 minutes
         ELAPSED=0
         while [ "$(aws sagemaker describe-notebook-instance \
           --notebook-instance-name "$INSTANCE_NAME" \
@@ -126,8 +206,8 @@ jobs:
             exit 1
           fi
           echo "Waiting for notebook to start... ($ELAPSED seconds)"
-          sleep 10
-          ELAPSED=$((ELAPSED + 10))
+          sleep 15
+          ELAPSED=$((ELAPSED + 15))
         done
         echo "::endgroup::"
 
