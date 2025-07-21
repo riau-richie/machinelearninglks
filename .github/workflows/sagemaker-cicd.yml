@@ -10,7 +10,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45  # Increased timeout for full setup
 
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -48,6 +48,36 @@ jobs:
         set -e
         TIMESTAMP=$(date +%Y%m%d%H%M%S)
         INSTANCE_NAME="ml-notebook-$TIMESTAMP"
+        LIFECYCLE_CONFIG_NAME="notebook-config-$TIMESTAMP"
+
+        echo "::group::Prepare Lifecycle Configuration"
+        # Create the setup script
+        cat > setup-script.sh << 'EOL'
+        #!/bin/bash
+        set -e
+        echo "Starting setup at $(date)"
+        sudo apt-get update -qq
+        sudo apt-get install -y git
+        REPO_URL="https://github.com/$GITHUB_REPOSITORY.git"
+        git clone --depth 1 --branch ${GITHUB_REF##*/} "$REPO_URL" /tmp/repo
+        if [ -f "/tmp/repo/machine_learning/script/on-start.sh" ]; then
+          echo "Running setup script..."
+          chmod +x "/tmp/repo/machine_learning/script/on-start.sh"
+          /tmp/repo/machine_learning/script/on-start.sh
+        else
+          echo "Setup script not found at /tmp/repo/machine_learning/script/on-start.sh"
+        fi
+        echo "Setup completed at $(date)"
+        EOL
+
+        # Encode the script
+        SETUP_SCRIPT=$(base64 -w 0 setup-script.sh)
+        
+        # Create lifecycle config
+        aws sagemaker create-notebook-instance-lifecycle-config \
+          --notebook-instance-lifecycle-config-name "$LIFECYCLE_CONFIG_NAME" \
+          --on-start Content="$SETUP_SCRIPT"
+        echo "::endgroup::"
 
         echo "::group::Get IAM Role"
         ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
@@ -64,14 +94,15 @@ jobs:
           --notebook-instance-name "$INSTANCE_NAME" \
           --instance-type "ml.t3.medium" \
           --role-arn "$LAB_ROLE_ARN" \
+          --lifecycle-config-name "$LIFECYCLE_CONFIG_NAME" \
           --volume-size-in-gb 20 \
           --direct-internet-access Enabled
         
-        echo "Notebook instance $INSTANCE_NAME created successfully"
+        echo "Notebook instance $INSTANCE_NAME created successfully with lifecycle config"
         echo "::endgroup::"
 
         echo "::group::Wait for Notebook to be Ready"
-        TIMEOUT=1200
+        TIMEOUT=1800  # 30 minutes
         ELAPSED=0
         
         while true; do
@@ -83,13 +114,24 @@ jobs:
           
           case "$STATUS" in
             "InService")
+              # Check if lifecycle config completed
+              LIFECYCLE_STATUS=$(aws sagemaker describe-notebook-instance \
+                --notebook-instance-name "$INSTANCE_NAME" \
+                --query "NotebookInstanceLifecycleConfigStatus" --output text)
+              
+              if [ "$LIFECYCLE_STATUS" == "Pending" ]; then
+                echo "Lifecycle configuration still running..."
+                sleep 30
+                ELAPSED=$((ELAPSED + 30))
+                continue
+              fi
               break
               ;;
             "Failed")
               echo "::error::Notebook creation failed"
               aws sagemaker describe-notebook-instance \
                 --notebook-instance-name "$INSTANCE_NAME" \
-                --query "{Status:NotebookInstanceStatus,Reason:FailureReason}" \
+                --query "{Status:NotebookInstanceStatus,Reason:FailureReason,LifecycleStatus:NotebookInstanceLifecycleConfigStatus}" \
                 --output table
               exit 1
               ;;
@@ -103,14 +145,14 @@ jobs:
           sleep 30
           ELAPSED=$((ELAPSED + 30))
         done
-        echo "::endgroup::"
-
+        
         echo "::group::Notebook Details"
         aws sagemaker describe-notebook-instance \
           --notebook-instance-name "$INSTANCE_NAME" \
           --query "{
             Name:NotebookInstanceName,
             Status:NotebookInstanceStatus,
+            LifecycleStatus:NotebookInstanceLifecycleConfigStatus,
             InstanceType:InstanceType,
             URL:Url,
             CreationTime:CreationTime,
@@ -121,53 +163,7 @@ jobs:
 
         echo "notebook-instance-name=$INSTANCE_NAME" >> $GITHUB_OUTPUT
         echo "NOTEBOOK_INSTANCE_NAME=$INSTANCE_NAME" >> $GITHUB_ENV
-
-    - name: Execute Setup via Notebook
-      run: |
-        echo "::group::Running Post-Creation Setup"
-        INSTANCE_NAME="${{ env.NOTEBOOK_INSTANCE_NAME }}"
-        
-        # Get the notebook URL
-        NOTEBOOK_URL=$(aws sagemaker describe-notebook-instance \
-          --notebook-instance-name "$INSTANCE_NAME" \
-          --query "Url" --output text)
-        
-        # Create a temporary script file
-        cat > setup-script.sh << 'EOL'
-        #!/bin/bash
-        set -e
-        echo "Starting setup..."
-        sudo apt-get update -qq
-        sudo apt-get install -y git
-        REPO_URL="https://github.com/$GITHUB_REPOSITORY.git"
-        git clone --depth 1 --branch ${GITHUB_REF##*/} "$REPO_URL" /tmp/repo
-        if [ -f "/tmp/repo/machine_learning/script/on-start.sh" ]; then
-          chmod +x "/tmp/repo/machine_learning/script/on-start.sh"
-          /tmp/repo/machine_learning/script/on-start.sh
-        fi
-        EOL
-        
-        # Encode the script for AWS CLI
-        SETUP_SCRIPT=$(base64 -w 0 setup-script.sh)
-        
-        # Create lifecycle configuration
-        LIFECYCLE_CONFIG_NAME="temp-config-$(date +%s)"
-        
-        aws sagemaker create-notebook-instance-lifecycle-config \
-          --notebook-instance-lifecycle-config-name "$LIFECYCLE_CONFIG_NAME" \
-          --on-start Content="$SETUP_SCRIPT"
-        
-        # Attach to notebook instance
-        aws sagemaker update-notebook-instance \
-          --notebook-instance-name "$INSTANCE_NAME" \
-          --lifecycle-config-name "$LIFECYCLE_CONFIG_NAME"
-        
-        # Restart the notebook to trigger the script
-        aws sagemaker stop-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
-        
-        echo "Notebook instance is restarting to apply setup..."
-        echo "Setup script will run on next start"
-        echo "::endgroup::"
+        echo "LIFECYCLE_CONFIG_NAME=$LIFECYCLE_CONFIG_NAME" >> $GITHUB_ENV
 
   cleanup:
     runs-on: ubuntu-latest
@@ -191,6 +187,7 @@ jobs:
     - name: Cleanup Resources
       run: |
         INSTANCE_NAME="${{ needs.deploy.outputs.notebook-instance-name }}"
+        CONFIG_NAME="${{ env.LIFECYCLE_CONFIG_NAME }}"
         
         if [ -n "$INSTANCE_NAME" ]; then
           echo "::group::Cleaning up notebook instance"
@@ -207,5 +204,13 @@ jobs:
           # Delete instance
           aws sagemaker delete-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
           echo "Deleted notebook instance: $INSTANCE_NAME"
+          echo "::endgroup::"
+        fi
+        
+        if [ -n "$CONFIG_NAME" ]; then
+          echo "::group::Cleaning up lifecycle config"
+          aws sagemaker delete-notebook-instance-lifecycle-config \
+            --notebook-instance-lifecycle-config-name "$CONFIG_NAME" || true
+          echo "Deleted lifecycle config: $CONFIG_NAME"
           echo "::endgroup::"
         fi
