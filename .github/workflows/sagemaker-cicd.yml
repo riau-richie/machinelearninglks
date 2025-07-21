@@ -20,7 +20,6 @@ jobs:
 
     outputs:
       notebook-instance-name: ${{ steps.create-notebook.outputs.notebook-instance-name }}
-      lifecycle-config-name: ${{ steps.create-notebook.outputs.lifecycle-config-name }}
 
     steps:
     - name: Checkout Repository
@@ -28,22 +27,32 @@ jobs:
 
     - name: Setup AWS CLI
       run: |
-        sudo apt-get update -qq
-        sudo apt-get install -y unzip curl
+        echo "::group::Install/Update AWS CLI"
+        # Remove existing installation if it exists
+        sudo rm -rf /usr/local/aws-cli /usr/local/bin/aws /usr/local/bin/aws_completer
+        
+        # Install latest AWS CLI
         curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
         unzip -q awscliv2.zip
         sudo ./aws/install
         rm -rf awscliv2.zip aws/
         aws --version
+        echo "::endgroup::"
 
-    - name: Create New SageMaker Notebook Instance
+    - name: Verify AWS Credentials
+      run: |
+        echo "::group::Verify AWS Access"
+        aws sts get-caller-identity
+        echo "::endgroup::"
+
+    - name: Create SageMaker Notebook Instance
       id: create-notebook
       run: |
         set -e
         TIMESTAMP=$(date +%Y%m%d%H%M%S)
         INSTANCE_NAME="ml-notebook-$TIMESTAMP"
 
-        echo "::group::Get Account ID and Build LabRole ARN"
+        echo "::group::Get IAM Role"
         ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
         LAB_ROLE_ARN="arn:aws:iam::${ACCOUNT_ID}:role/LabRole"
         
@@ -53,46 +62,40 @@ jobs:
         fi
         echo "::endgroup::"
 
-        echo "::group::Create Notebook Instance (Without Lifecycle Config)"
-        INSTANCE_TYPE="ml.t3.medium"
-        VOLUME_SIZE=20
-        
+        echo "::group::Create Notebook Instance"
         aws sagemaker create-notebook-instance \
           --notebook-instance-name "$INSTANCE_NAME" \
-          --instance-type "$INSTANCE_TYPE" \
+          --instance-type "ml.t3.medium" \
           --role-arn "$LAB_ROLE_ARN" \
-          --volume-size-in-gb $VOLUME_SIZE \
+          --volume-size-in-gb 20 \
           --direct-internet-access Enabled
         
-        echo "✓ Created notebook instance: $INSTANCE_NAME"
+        echo "Notebook instance $INSTANCE_NAME created successfully"
         echo "::endgroup::"
 
-        echo "::group::Wait for Notebook Instance to be Ready"
-        echo "Waiting for notebook instance to start..."
-        
+        echo "::group::Wait for Notebook to be Ready"
         TIMEOUT=1200
         ELAPSED=0
         
         while true; do
-          CURRENT_STATUS=$(aws sagemaker describe-notebook-instance \
+          STATUS=$(aws sagemaker describe-notebook-instance \
             --notebook-instance-name "$INSTANCE_NAME" \
-            --query "NotebookInstanceStatus" --output text || echo "Unknown")
+            --query "NotebookInstanceStatus" --output text)
           
-          case "$CURRENT_STATUS" in
+          echo "Status: $STATUS ($ELAPSED seconds)"
+          
+          case "$STATUS" in
             "InService")
-              echo "✓ Notebook instance is ready"
               break
               ;;
             "Failed")
-              echo "::error::Notebook instance creation failed"
+              echo "::error::Notebook creation failed"
               aws sagemaker describe-notebook-instance \
                 --notebook-instance-name "$INSTANCE_NAME" \
                 --query "{Status:NotebookInstanceStatus,Reason:FailureReason}" \
                 --output table
               exit 1
               ;;
-            *)
-              echo "Current status: $CURRENT_STATUS ($ELAPSED seconds)"
           esac
           
           if [ $ELAPSED -ge $TIMEOUT ]; then
@@ -105,60 +108,7 @@ jobs:
         done
         echo "::endgroup::"
 
-        echo "::group::Execute Setup Script via SSM"
-        # Create a temporary SSM document to run our setup
-        cat > setup-document.json << 'EOL'
-        {
-          "schemaVersion": "2.2",
-          "description": "Run notebook setup script",
-          "parameters": {},
-          "mainSteps": [
-            {
-              "action": "aws:runShellScript",
-              "name": "runSetup",
-              "inputs": {
-                "runCommand": [
-                  "#!/bin/bash",
-                  "set -e",
-                  "echo 'Starting setup...'",
-                  "sudo apt-get update -qq",
-                  "sudo apt-get install -y git",
-                  "REPO_URL='https://github.com/$GITHUB_REPOSITORY.git'",
-                  "git clone --depth 1 --branch ${GITHUB_REF##*/} \"$REPO_URL\" /tmp/repo",
-                  "if [ -f \"/tmp/repo/machine_learning/script/on-start.sh\" ]; then",
-                  "  chmod +x \"/tmp/repo/machine_learning/script/on-start.sh\"",
-                  "  /tmp/repo/machine_learning/script/on-start.sh",
-                  "else",
-                  "  echo 'Setup script not found'",
-                  "fi"
-                ]
-              }
-            }
-          ]
-        }
-        EOL
-
-        # Create and execute the SSM document
-        aws ssm create-document \
-          --name "NotebookSetup-$TIMESTAMP" \
-          --content file://setup-document.json \
-          --document-type "Command" \
-          --document-format "JSON"
-        
-        INSTANCE_ID=$(aws sagemaker describe-notebook-instance \
-          --notebook-instance-name "$INSTANCE_NAME" \
-          --query "NotebookInstanceArn" --output text | cut -d'/' -f2)
-        
-        aws ssm send-command \
-          --instance-ids "$INSTANCE_ID" \
-          --document-name "NotebookSetup-$TIMESTAMP" \
-          --output-s3-bucket-name "techmart-ml-handi" \
-          --output-s3-key-prefix "ssm-logs/"
-        
-        echo "✓ Setup script execution started via SSM"
-        echo "::endgroup::"
-
-        echo "::group::Notebook Instance Details"
+        echo "::group::Notebook Details"
         aws sagemaker describe-notebook-instance \
           --notebook-instance-name "$INSTANCE_NAME" \
           --query "{
@@ -172,12 +122,61 @@ jobs:
           --output table
         echo "::endgroup::"
 
-        echo "::notice::✅ SageMaker notebook instance created successfully!"
-        echo "::notice::Instance Name: $INSTANCE_NAME"
-        echo "::notice::IAM Role: $LAB_ROLE_ARN"
-        
-        echo "NOTEBOOK_INSTANCE_NAME=$INSTANCE_NAME" >> $GITHUB_ENV
         echo "notebook-instance-name=$INSTANCE_NAME" >> $GITHUB_OUTPUT
+        echo "NOTEBOOK_INSTANCE_NAME=$INSTANCE_NAME" >> $GITHUB_ENV
+
+    - name: Execute Post-Creation Setup
+      run: |
+        echo "::group::Running Post-Creation Setup"
+        INSTANCE_NAME="${{ env.NOTEBOOK_INSTANCE_NAME }}"
+        
+        # Get the notebook instance ID
+        INSTANCE_ID=$(aws sagemaker describe-notebook-instance \
+          --notebook-instance-name "$INSTANCE_NAME" \
+          --query "NotebookInstanceArn" --output text | cut -d'/' -f2)
+        
+        # Create SSM command document
+        cat > setup-command.json << 'EOL'
+        {
+          "schemaVersion": "2.2",
+          "description": "Notebook Setup Commands",
+          "parameters": {},
+          "mainSteps": [
+            {
+              "action": "aws:runShellScript",
+              "name": "setupScript",
+              "inputs": {
+                "runCommand": [
+                  "#!/bin/bash",
+                  "set -e",
+                  "echo 'Starting setup...'",
+                  "sudo apt-get update -qq",
+                  "sudo apt-get install -y git",
+                  "REPO_URL='https://github.com/$GITHUB_REPOSITORY.git'",
+                  "git clone --depth 1 --branch ${GITHUB_REF##*/} \"$REPO_URL\" /tmp/repo",
+                  "if [ -f \"/tmp/repo/machine_learning/script/on-start.sh\" ]; then",
+                  "  chmod +x \"/tmp/repo/machine_learning/script/on-start.sh\"",
+                  "  /tmp/repo/machine_learning/script/on-start.sh",
+                  "fi"
+                ]
+              }
+            }
+          ]
+        }
+        EOL
+        
+        # Execute the setup
+        aws ssm create-document \
+          --name "NotebookSetup-$(date +%s)" \
+          --content file://setup-command.json \
+          --document-type "Command"
+        
+        aws ssm send-command \
+          --instance-ids "$INSTANCE_ID" \
+          --document-name "NotebookSetup-$(date +%s)" \
+          --cloud-watch-output-config '{"CloudWatchLogGroupName":"/aws/sagemaker/notebook-instances","CloudWatchOutputEnabled":true}'
+        
+        echo "::endgroup::"
 
   cleanup:
     runs-on: ubuntu-latest
@@ -193,39 +192,29 @@ jobs:
     steps:
     - name: Setup AWS CLI
       run: |
-        sudo apt-get update -qq
-        sudo apt-get install -y unzip curl
         curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
         unzip -q awscliv2.zip
         sudo ./aws/install
         rm -rf awscliv2.zip aws/
-    
+
     - name: Cleanup Resources
       run: |
         INSTANCE_NAME="${{ needs.deploy.outputs.notebook-instance-name }}"
         
-        if [ -n "$INSTANCE_NAME" ] && [ "$INSTANCE_NAME" != "null" ]; then
-          echo "Checking notebook instance status: $INSTANCE_NAME"
-          STATUS=$(aws sagemaker describe-notebook-instance \
-            --notebook-instance-name "$INSTANCE_NAME" \
-            --query "NotebookInstanceStatus" --output text 2>/dev/null || echo "NotFound")
+        if [ -n "$INSTANCE_NAME" ]; then
+          echo "::group::Cleaning up notebook instance"
+          # Stop if running
+          aws sagemaker stop-notebook-instance --notebook-instance-name "$INSTANCE_NAME" || true
           
-          if [ "$STATUS" != "NotFound" ]; then
-            echo "Current status: $STATUS"
-            
-            if [ "$STATUS" == "InService" ]; then
-              echo "Stopping notebook instance..."
-              aws sagemaker stop-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
-              
-              while [ "$(aws sagemaker describe-notebook-instance \
-                --notebook-instance-name "$INSTANCE_NAME" \
-                --query "NotebookInstanceStatus" --output text)" != "Stopped" ]; do
-                sleep 30
-              done
-            fi
-            
-            echo "Deleting notebook instance..."
-            aws sagemaker delete-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
-            echo "✓ Deleted notebook instance: $INSTANCE_NAME"
-          fi
+          # Wait for stopped state
+          while [ "$(aws sagemaker describe-notebook-instance \
+            --notebook-instance-name "$INSTANCE_NAME" \
+            --query "NotebookInstanceStatus" --output text 2>/dev/null || echo "NotFound")" != "Stopped" ]; do
+            sleep 10
+          done
+          
+          # Delete instance
+          aws sagemaker delete-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
+          echo "Deleted notebook instance: $INSTANCE_NAME"
+          echo "::endgroup::"
         fi
