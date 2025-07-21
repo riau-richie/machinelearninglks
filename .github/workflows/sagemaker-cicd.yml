@@ -26,137 +26,34 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: Debug - Check File Structure
-      run: |
-        echo "::group::Repository Structure"
-        find . -type f -name "*.ipynb" -o -name "*.sh" -o -name "requirements.txt" | head -20
-        echo "::endgroup::"
-        
-        echo "::group::Check Target Files"
-        if [ -f "machine_learning/training.ipynb" ]; then
-          echo "✓ training.ipynb found"
-        else
-          echo "✗ training.ipynb NOT found"
-        fi
-        
-        if [ -f "requirements.txt" ]; then
-          echo "✓ requirements.txt found"
-        else
-          echo "✗ requirements.txt NOT found"
-        fi
-        
-        if [ -f "machine_learning/script/on-start.sh" ]; then
-          echo "✓ on-start.sh found"
-          echo "Content preview:"
-          head -10 "machine_learning/script/on-start.sh"
-        else
-          echo "✗ on-start.sh NOT found"
-        fi
-        echo "::endgroup::"
-
     - name: Setup AWS CLI
       run: |
-        set -e
-        echo "::group::Update system packages"
         sudo apt-get update -qq
         sudo apt-get install -y unzip curl
-        echo "::endgroup::"
-        
-        echo "::group::Install/Update AWS CLI"
-        sudo rm -rf /usr/local/aws-cli /usr/local/bin/aws /usr/local/bin/aws_completer 2>/dev/null || true
         curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
         unzip -q awscliv2.zip
         sudo ./aws/install
         rm -rf awscliv2.zip aws/
         aws --version
-        echo "::endgroup::"
-
-    - name: Verify AWS Credentials
-      run: |
-        set -e
-        echo "::group::Check AWS Configuration"
-        echo "AWS Region: $AWS_DEFAULT_REGION"
-        echo "AWS Access Key ID: ${AWS_ACCESS_KEY_ID:0:10}..."
-        echo "::endgroup::"
-        
-        echo "::group::Test AWS Connection"
-        aws sts get-caller-identity
-        echo "::endgroup::"
-        
-        echo "::group::List SageMaker Instances"
-        aws sagemaker list-notebook-instances --max-items 5
-        echo "::endgroup::"
 
     - name: Create New SageMaker Notebook Instance
       id: create-notebook
       run: |
         set -e
         TIMESTAMP=$(date +%Y%m%d%H%M%S)
-        CONFIG_NAME="notebook-config-$TIMESTAMP"
         INSTANCE_NAME="ml-notebook-$TIMESTAMP"
-
-        echo "::group::Create Optimized Lifecycle Configuration"
-        # Create a minimal startup script that will:
-        # 1. Install basic dependencies
-        # 2. Download the full setup script
-        # 3. Execute it in the background after notebook starts
-        cat > optimized-start.sh << 'EOL'
-        #!/bin/bash
-        set -e
-        
-        echo "Starting optimized lifecycle configuration..."
-        
-        # Install minimal required packages
-        sudo apt-get update -qq
-        sudo apt-get install -y git awscli unzip
-        
-        # Download the full setup script from the repository
-        REPO_URL="https://github.com/$GITHUB_REPOSITORY.git"
-        SETUP_SCRIPT_PATH="machine_learning/script/on-start.sh"
-        
-        echo "Cloning repository..."
-        git clone --depth 1 --branch ${GITHUB_REF##*/} "$REPO_URL" /tmp/repo
-        
-        if [ -f "/tmp/repo/$SETUP_SCRIPT_PATH" ]; then
-          echo "Found setup script, scheduling for execution..."
-          # Schedule the full setup to run after notebook starts
-          nohup bash -c "sleep 30; /tmp/repo/$SETUP_SCRIPT_PATH" > /var/log/full-setup.log 2>&1 &
-          echo "Full setup scheduled to run in background"
-        else
-          echo "Warning: Full setup script not found at $SETUP_SCRIPT_PATH"
-        fi
-        
-        echo "Optimized lifecycle configuration complete"
-        EOL
-        
-        chmod +x optimized-start.sh
-        LIFECYCLE_SCRIPT=$(base64 -w 0 optimized-start.sh)
-        
-        aws sagemaker create-notebook-instance-lifecycle-config \
-          --notebook-instance-lifecycle-config-name "$CONFIG_NAME" \
-          --on-start Content="$LIFECYCLE_SCRIPT"
-        
-        echo "✓ Created optimized lifecycle config: $CONFIG_NAME"
-        echo "::endgroup::"
 
         echo "::group::Get Account ID and Build LabRole ARN"
         ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
         LAB_ROLE_ARN="arn:aws:iam::${ACCOUNT_ID}:role/LabRole"
         
-        echo "Account ID: $ACCOUNT_ID"
-        echo "Using LabRole ARN: $LAB_ROLE_ARN"
-        
         if ! aws iam get-role --role-name LabRole >/dev/null 2>&1; then
           echo "::error::LabRole not found in account $ACCOUNT_ID"
-          echo "Available roles:"
-          aws iam list-roles --query "Roles[].RoleName" --output table
           exit 1
         fi
-        
-        echo "✓ LabRole found and accessible"
         echo "::endgroup::"
 
-        echo "::group::Create Notebook Instance"
+        echo "::group::Create Notebook Instance (Without Lifecycle Config)"
         INSTANCE_TYPE="ml.t3.medium"
         VOLUME_SIZE=20
         
@@ -164,14 +61,10 @@ jobs:
           --notebook-instance-name "$INSTANCE_NAME" \
           --instance-type "$INSTANCE_TYPE" \
           --role-arn "$LAB_ROLE_ARN" \
-          --lifecycle-config-name "$CONFIG_NAME" \
           --volume-size-in-gb $VOLUME_SIZE \
           --direct-internet-access Enabled
         
         echo "✓ Created notebook instance: $INSTANCE_NAME"
-        echo "Instance Type: $INSTANCE_TYPE"
-        echo "Volume Size: ${VOLUME_SIZE}GB"
-        echo "IAM Role: $LAB_ROLE_ARN"
         echo "::endgroup::"
 
         echo "::group::Wait for Notebook Instance to be Ready"
@@ -179,18 +72,11 @@ jobs:
         
         TIMEOUT=1200
         ELAPSED=0
-        LAST_STATUS=""
         
         while true; do
           CURRENT_STATUS=$(aws sagemaker describe-notebook-instance \
             --notebook-instance-name "$INSTANCE_NAME" \
             --query "NotebookInstanceStatus" --output text || echo "Unknown")
-          
-          # Only log when status changes
-          if [ "$CURRENT_STATUS" != "$LAST_STATUS" ]; then
-            echo "Status changed to: $CURRENT_STATUS ($ELAPSED seconds)"
-            LAST_STATUS="$CURRENT_STATUS"
-          fi
           
           case "$CURRENT_STATUS" in
             "InService")
@@ -205,24 +91,71 @@ jobs:
                 --output table
               exit 1
               ;;
-            "Unknown")
-              echo "::warning::Unable to get notebook status (may be initializing)"
-              ;;
+            *)
+              echo "Current status: $CURRENT_STATUS ($ELAPSED seconds)"
           esac
           
           if [ $ELAPSED -ge $TIMEOUT ]; then
             echo "::error::Timeout waiting for notebook to start"
-            aws sagemaker describe-notebook-instance \
-              --notebook-instance-name "$INSTANCE_NAME" \
-              --query "{Status:NotebookInstanceStatus,Reason:FailureReason}" \
-              --output table
             exit 1
           fi
           
           sleep 30
           ELAPSED=$((ELAPSED + 30))
         done
+        echo "::endgroup::"
+
+        echo "::group::Execute Setup Script via SSM"
+        # Create a temporary SSM document to run our setup
+        cat > setup-document.json << 'EOL'
+        {
+          "schemaVersion": "2.2",
+          "description": "Run notebook setup script",
+          "parameters": {},
+          "mainSteps": [
+            {
+              "action": "aws:runShellScript",
+              "name": "runSetup",
+              "inputs": {
+                "runCommand": [
+                  "#!/bin/bash",
+                  "set -e",
+                  "echo 'Starting setup...'",
+                  "sudo apt-get update -qq",
+                  "sudo apt-get install -y git",
+                  "REPO_URL='https://github.com/$GITHUB_REPOSITORY.git'",
+                  "git clone --depth 1 --branch ${GITHUB_REF##*/} \"$REPO_URL\" /tmp/repo",
+                  "if [ -f \"/tmp/repo/machine_learning/script/on-start.sh\" ]; then",
+                  "  chmod +x \"/tmp/repo/machine_learning/script/on-start.sh\"",
+                  "  /tmp/repo/machine_learning/script/on-start.sh",
+                  "else",
+                  "  echo 'Setup script not found'",
+                  "fi"
+                ]
+              }
+            }
+          ]
+        }
+        EOL
+
+        # Create and execute the SSM document
+        aws ssm create-document \
+          --name "NotebookSetup-$TIMESTAMP" \
+          --content file://setup-document.json \
+          --document-type "Command" \
+          --document-format "JSON"
         
+        INSTANCE_ID=$(aws sagemaker describe-notebook-instance \
+          --notebook-instance-name "$INSTANCE_NAME" \
+          --query "NotebookInstanceArn" --output text | cut -d'/' -f2)
+        
+        aws ssm send-command \
+          --instance-ids "$INSTANCE_ID" \
+          --document-name "NotebookSetup-$TIMESTAMP" \
+          --output-s3-bucket-name "techmart-ml-handi" \
+          --output-s3-key-prefix "ssm-logs/"
+        
+        echo "✓ Setup script execution started via SSM"
         echo "::endgroup::"
 
         echo "::group::Notebook Instance Details"
@@ -234,7 +167,6 @@ jobs:
             InstanceType:InstanceType,
             URL:Url,
             CreationTime:CreationTime,
-            LifecycleConfig:NotebookInstanceLifecycleConfigName,
             RoleArn:RoleArn
           }" \
           --output table
@@ -242,13 +174,10 @@ jobs:
 
         echo "::notice::✅ SageMaker notebook instance created successfully!"
         echo "::notice::Instance Name: $INSTANCE_NAME"
-        echo "::notice::Lifecycle Config: $CONFIG_NAME"
         echo "::notice::IAM Role: $LAB_ROLE_ARN"
         
         echo "NOTEBOOK_INSTANCE_NAME=$INSTANCE_NAME" >> $GITHUB_ENV
-        echo "LIFECYCLE_CONFIG_NAME=$CONFIG_NAME" >> $GITHUB_ENV
         echo "notebook-instance-name=$INSTANCE_NAME" >> $GITHUB_OUTPUT
-        echo "lifecycle-config-name=$CONFIG_NAME" >> $GITHUB_OUTPUT
 
   cleanup:
     runs-on: ubuntu-latest
@@ -274,7 +203,6 @@ jobs:
     - name: Cleanup Resources
       run: |
         INSTANCE_NAME="${{ needs.deploy.outputs.notebook-instance-name }}"
-        CONFIG_NAME="${{ needs.deploy.outputs.lifecycle-config-name }}"
         
         if [ -n "$INSTANCE_NAME" ] && [ "$INSTANCE_NAME" != "null" ]; then
           echo "Checking notebook instance status: $INSTANCE_NAME"
@@ -289,7 +217,6 @@ jobs:
               echo "Stopping notebook instance..."
               aws sagemaker stop-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
               
-              # Wait for stop
               while [ "$(aws sagemaker describe-notebook-instance \
                 --notebook-instance-name "$INSTANCE_NAME" \
                 --query "NotebookInstanceStatus" --output text)" != "Stopped" ]; do
@@ -300,15 +227,5 @@ jobs:
             echo "Deleting notebook instance..."
             aws sagemaker delete-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
             echo "✓ Deleted notebook instance: $INSTANCE_NAME"
-          else
-            echo "Notebook instance not found or already deleted"
           fi
-        fi
-        
-        if [ -n "$CONFIG_NAME" ] && [ "$CONFIG_NAME" != "null" ]; then
-          echo "Deleting lifecycle config: $CONFIG_NAME"
-          aws sagemaker delete-notebook-instance-lifecycle-config \
-            --notebook-instance-lifecycle-config-name "$CONFIG_NAME" || \
-            echo "Lifecycle config not found or already deleted"
-          echo "✓ Deleted lifecycle config: $CONFIG_NAME"
         fi
