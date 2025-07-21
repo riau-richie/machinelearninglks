@@ -28,10 +28,7 @@ jobs:
     - name: Setup AWS CLI
       run: |
         echo "::group::Install/Update AWS CLI"
-        # Remove existing installation if it exists
         sudo rm -rf /usr/local/aws-cli /usr/local/bin/aws /usr/local/bin/aws_completer
-        
-        # Install latest AWS CLI
         curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
         unzip -q awscliv2.zip
         sudo ./aws/install
@@ -125,57 +122,51 @@ jobs:
         echo "notebook-instance-name=$INSTANCE_NAME" >> $GITHUB_OUTPUT
         echo "NOTEBOOK_INSTANCE_NAME=$INSTANCE_NAME" >> $GITHUB_ENV
 
-    - name: Execute Post-Creation Setup
+    - name: Execute Setup via Notebook
       run: |
         echo "::group::Running Post-Creation Setup"
         INSTANCE_NAME="${{ env.NOTEBOOK_INSTANCE_NAME }}"
         
-        # Get the notebook instance ID
-        INSTANCE_ID=$(aws sagemaker describe-notebook-instance \
+        # Get the notebook URL
+        NOTEBOOK_URL=$(aws sagemaker describe-notebook-instance \
           --notebook-instance-name "$INSTANCE_NAME" \
-          --query "NotebookInstanceArn" --output text | cut -d'/' -f2)
+          --query "Url" --output text)
         
-        # Create SSM command document
-        cat > setup-command.json << 'EOL'
-        {
-          "schemaVersion": "2.2",
-          "description": "Notebook Setup Commands",
-          "parameters": {},
-          "mainSteps": [
-            {
-              "action": "aws:runShellScript",
-              "name": "setupScript",
-              "inputs": {
-                "runCommand": [
-                  "#!/bin/bash",
-                  "set -e",
-                  "echo 'Starting setup...'",
-                  "sudo apt-get update -qq",
-                  "sudo apt-get install -y git",
-                  "REPO_URL='https://github.com/$GITHUB_REPOSITORY.git'",
-                  "git clone --depth 1 --branch ${GITHUB_REF##*/} \"$REPO_URL\" /tmp/repo",
-                  "if [ -f \"/tmp/repo/machine_learning/script/on-start.sh\" ]; then",
-                  "  chmod +x \"/tmp/repo/machine_learning/script/on-start.sh\"",
-                  "  /tmp/repo/machine_learning/script/on-start.sh",
-                  "fi"
-                ]
-              }
-            }
-          ]
-        }
+        # Create a temporary script file
+        cat > setup-script.sh << 'EOL'
+        #!/bin/bash
+        set -e
+        echo "Starting setup..."
+        sudo apt-get update -qq
+        sudo apt-get install -y git
+        REPO_URL="https://github.com/$GITHUB_REPOSITORY.git"
+        git clone --depth 1 --branch ${GITHUB_REF##*/} "$REPO_URL" /tmp/repo
+        if [ -f "/tmp/repo/machine_learning/script/on-start.sh" ]; then
+          chmod +x "/tmp/repo/machine_learning/script/on-start.sh"
+          /tmp/repo/machine_learning/script/on-start.sh
+        fi
         EOL
         
-        # Execute the setup
-        aws ssm create-document \
-          --name "NotebookSetup-$(date +%s)" \
-          --content file://setup-command.json \
-          --document-type "Command"
+        # Encode the script for AWS CLI
+        SETUP_SCRIPT=$(base64 -w 0 setup-script.sh)
         
-        aws ssm send-command \
-          --instance-ids "$INSTANCE_ID" \
-          --document-name "NotebookSetup-$(date +%s)" \
-          --cloud-watch-output-config '{"CloudWatchLogGroupName":"/aws/sagemaker/notebook-instances","CloudWatchOutputEnabled":true}'
+        # Create lifecycle configuration
+        LIFECYCLE_CONFIG_NAME="temp-config-$(date +%s)"
         
+        aws sagemaker create-notebook-instance-lifecycle-config \
+          --notebook-instance-lifecycle-config-name "$LIFECYCLE_CONFIG_NAME" \
+          --on-start Content="$SETUP_SCRIPT"
+        
+        # Attach to notebook instance
+        aws sagemaker update-notebook-instance \
+          --notebook-instance-name "$INSTANCE_NAME" \
+          --lifecycle-config-name "$LIFECYCLE_CONFIG_NAME"
+        
+        # Restart the notebook to trigger the script
+        aws sagemaker stop-notebook-instance --notebook-instance-name "$INSTANCE_NAME"
+        
+        echo "Notebook instance is restarting to apply setup..."
+        echo "Setup script will run on next start"
         echo "::endgroup::"
 
   cleanup:
