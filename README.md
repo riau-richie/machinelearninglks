@@ -7,7 +7,7 @@
 `FORECAST_API_URL=yourAPIGATEWAYURL`<br/>
 `API_GATEWAY_KEY=yourAPIGATEWAYKEY`<br/>
 
-### AWS Credentials
+### AWS Credential
 `AWS_ACCESS_KEY_ID=yourAWS_ACCESS_KEY`<br/>
 `AWS_SECRET_ACCESS_KEY=yourSECRET_ACCESS`<br/>
 `AWS_SESSION_TOKEN=yoursessionToken`<br/>
