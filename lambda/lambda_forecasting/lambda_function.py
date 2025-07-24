@@ -1,15 +1,18 @@
 import json
 import boto3
 import os
-import pickle
 from datetime import datetime, timedelta
 import logging
-import sys
 import random
 from typing import Dict, Any, List, Tuple, Optional
 from boto3.dynamodb.conditions import Key
-import numpy as np
-from statistics import mean, stdev
+import math
+
+# Only import pickle if needed to avoid potential conflicts
+try:
+    import pickle
+except ImportError:
+    pickle = None
 
 # Configure logging
 logger = logging.getLogger()
@@ -24,6 +27,20 @@ USER_INTERACTIONS_TABLE = os.environ.get('USER_INTERACTIONS_TABLE', 'UserInterac
 PRODUCT_EMBEDDINGS_TABLE = os.environ.get('PRODUCT_EMBEDDINGS_TABLE', 'ProductEmbeddings')
 SALES_HISTORY_TABLE = os.environ.get('SALES_HISTORY_TABLE', 'SalesHistory')
 
+# Helper functions to replace statistics functions
+def calculate_mean(data: List[float]) -> float:
+    """Calculate mean without using statistics module"""
+    return sum(data) / len(data) if data else 0
+
+def calculate_stdev(data: List[float]) -> float:
+    """Calculate standard deviation without using statistics module"""
+    if len(data) < 2:
+        return 0
+    
+    mean_val = calculate_mean(data)
+    variance = sum((x - mean_val) ** 2 for x in data) / (len(data) - 1)
+    return math.sqrt(variance)
+
 # 1. DEFINE THE FORECASTING MODEL CLASS
 class SalesForecastingModel:
     """Sales forecasting model with multiple methods"""
@@ -35,7 +52,7 @@ class SalesForecastingModel:
         """Simple moving average forecasting"""
         if len(data) < window:
             # If not enough data, use simple average
-            avg = mean(data) if data else 0
+            avg = calculate_mean(data) if data else 0
             return [avg] * periods
             
         forecasts = []
@@ -47,7 +64,7 @@ class SalesForecastingModel:
                 # Subsequent forecasts use mix of actual and predicted values
                 window_data = data[-(window-i):] + forecasts[:i] if i < window else forecasts[-window:]
             
-            forecast = mean(window_data)
+            forecast = calculate_mean(window_data)
             forecasts.append(forecast)
             
         return forecasts
@@ -70,7 +87,7 @@ class SalesForecastingModel:
     def linear_trend_forecast(data: List[float], periods: int = 30) -> List[float]:
         """Linear trend forecasting"""
         if len(data) < 2:
-            avg = mean(data) if data else 0
+            avg = calculate_mean(data) if data else 0
             return [avg] * periods
             
         # Calculate linear trend
@@ -79,8 +96,8 @@ class SalesForecastingModel:
         y = data
         
         # Linear regression calculation
-        x_mean = mean(x)
-        y_mean = mean(y)
+        x_mean = calculate_mean(x)
+        y_mean = calculate_mean(y)
         
         numerator = sum((x[i] - x_mean) * (y[i] - y_mean) for i in range(n))
         denominator = sum((x[i] - x_mean) ** 2 for i in range(n))
@@ -103,7 +120,7 @@ class SalesForecastingModel:
     def seasonal_forecast(data: List[float], seasonality: int = 7, periods: int = 30) -> List[float]:
         """Simple seasonal forecasting"""
         if len(data) < seasonality:
-            avg = mean(data) if data else 0
+            avg = calculate_mean(data) if data else 0
             return [avg] * periods
             
         forecasts = []
@@ -111,7 +128,7 @@ class SalesForecastingModel:
             # Use seasonal pattern from historical data
             seasonal_index = i % seasonality
             seasonal_data = [data[j] for j in range(seasonal_index, len(data), seasonality)]
-            forecast = mean(seasonal_data) if seasonal_data else 0
+            forecast = calculate_mean(seasonal_data) if seasonal_data else 0
             forecasts.append(forecast)
             
         return forecasts
@@ -120,6 +137,11 @@ class SalesForecastingModel:
 def load_forecasting_model(bucket: str, key: str) -> SalesForecastingModel:
     """Safe model loading with multiple fallbacks"""
     try:
+        # Skip model loading if pickle is not available or if there's an issue
+        if pickle is None:
+            logger.warning("Pickle not available, using fallback implementation")
+            return SalesForecastingModel()
+            
         # Try loading from S3 first
         local_path = '/tmp/forecasting_model.pkl'
         s3.download_file(bucket, key, local_path)
@@ -258,7 +280,7 @@ def generate_forecast(product_id: str = None, category: str = None, method: str 
             'method': method,
             'confidence': confidence,
             'historical_data_points': len(historical_data),
-            'historical_average': mean(time_series) if time_series else 0,
+            'historical_average': calculate_mean(time_series) if time_series else 0,
             'forecast_dates': [(datetime.now() + timedelta(days=i)).strftime('%Y-%m-%d') 
                              for i in range(1, periods + 1)]
         }
@@ -315,10 +337,10 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         forecast_values = forecast_result['forecast']
         summary = {
             'total_forecast': sum(forecast_values),
-            'average_daily': mean(forecast_values),
+            'average_daily': calculate_mean(forecast_values),
             'min_daily': min(forecast_values),
             'max_daily': max(forecast_values),
-            'std_deviation': stdev(forecast_values) if len(forecast_values) > 1 else 0
+            'std_deviation': calculate_stdev(forecast_values) if len(forecast_values) > 1 else 0
         }
         
         # Format response
