@@ -7,13 +7,11 @@
 `MODEL_KEY=models/hybrid_model.pkl`
 
 ### Dynamo Tables
-`USERS_TABLE=techmart-users`
+`USERS_TABLE=techmart-users`<br/>
 `PRODUCTS_TABLE=ProductEmbeddings`
 
 ## Prediction Test
 ### Method POST Testing
-
-## Method POST Testing
 ```json
 {
   "user_id": "user123",
