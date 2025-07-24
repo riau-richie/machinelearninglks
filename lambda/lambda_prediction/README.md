@@ -1,17 +1,23 @@
 # Lambda Prediction
 
 ## ENVIRONMENT VARIABLES
-`MODEL_BUCKET=your bucket model`<br/>
-`MODEL_KEY=models/hybrid_model.pkl`<br/>
-`PRODUCT_EMBEDDINGS_TABLE=ProductEmbeddings`<br/>
-`SALES_HISTORY_TABLE=SalesHistory`<br/>
-`USER_INTERACTIONS_TABLE=UserInteractions`
 
+### AWS Configuration
+`MODEL_BUCKET=your bucket model`<br/>
+`MODEL_KEY=models/hybrid_model.pkl`
+
+### Dynamo Tables
+`USERS_TABLE=techmart-users`
+`PRODUCTS_TABLE=ProductEmbeddings`
+
+## Prediction Test
+### Method POST Testing
 
 ## Method POST Testing
 ```json
 {
-  "method": "moving_average",
-  "periods": 30,
-  "metric": "amount"
+  "user_id": "user123",
+  "product_id": "LAPTOP001"
 }
+
+
