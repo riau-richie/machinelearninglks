@@ -1,0 +1,501 @@
+product_id,name,category,brand,price,original_price,discount_percentage,avg_rating,num_reviews,stock_quantity,release_date
+prod_00001,Uniqlo Tire Set,Automotive,Uniqlo,1300.15,1334.17,2.6,3.3,420,177,2023-12-04
+prod_00002,Nike T-Shirt,Fashion,Nike,713.89,759.23,6.0,3.4,874,103,2025-03-27
+prod_00003,Machine Learning Basics,Books,Xiaomi,788.48,1023.26,22.9,4.5,617,69,2023-06-17
+prod_00004,LG Motor Oil,Automotive,LG,965.21,1350.02,28.5,5.0,533,71,2025-03-02
+prod_00005,Apple Action Figure,Toys,Apple,458.46,538.85,14.9,4.3,147,7,2025-04-20
+prod_00006,Apple Laptop Ultra,Electronics,Apple,972.11,1372.31,29.2,3.8,705,83,2025-02-24
+prod_00007,H&M Yoga Mat,Sports,H&M,232.39,237.85,2.3,4.5,795,126,2023-05-11
+prod_00008,Adidas Building Blocks,Toys,Adidas,1143.84,1341.08,14.7,3.5,361,138,2024-01-18
+prod_00009,Samsung Laptop Ultra,Electronics,Samsung,1703.12,1766.25,3.6,3.9,883,96,2024-05-03
+prod_00010,Samsung Action Figure,Toys,Samsung,316.78,394.89,19.8,4.6,915,180,2025-02-12
+prod_00011,Xiaomi Action Figure,Toys,Xiaomi,582.34,659.3,11.7,4.5,592,172,2024-03-15
+prod_00012,Uniqlo Board Game,Toys,Uniqlo,1455.15,1715.99,15.2,3.8,516,151,2022-11-09
+prod_00013,H&M Tire Set,Automotive,H&M,521.44,737.89,29.3,3.6,38,151,2025-06-14
+prod_00014,LG Coffee Maker,Home & Garden,LG,1343.31,1628.63,17.5,4.5,650,87,2024-07-06
+prod_00015,Xiaomi Jeans,Fashion,Xiaomi,1739.08,1984.29,12.4,3.1,260,63,2024-12-02
+prod_00016,H&M Running Shoes,Sports,H&M,1789.39,1825.26,2.0,3.6,355,43,2025-07-10
+prod_00017,Samsung Makeup Kit,Beauty,Samsung,1163.74,1332.65,12.7,4.0,441,68,2025-07-10
+prod_00018,H&M Action Figure,Toys,H&M,1748.74,1972.24,11.3,3.8,596,25,2023-04-25
+prod_00019,Apple Board Game,Toys,Apple,1228.74,1366.47,10.1,4.0,793,170,2024-08-17
+prod_00020,H&M Coffee Maker,Home & Garden,H&M,659.29,758.5,13.1,4.0,877,19,2023-03-23
+prod_00021,Data Science Handbook,Books,Sony,100.04,142.69,29.9,3.8,241,159,2023-07-01
+prod_00022,H&M T-Shirt,Fashion,H&M,1105.39,1204.14,8.2,4.1,553,121,2024-05-19
+prod_00023,Python Programming Guide,Books,LG,1200.92,1320.5,9.1,4.6,453,169,2024-01-25
+prod_00024,Adidas Makeup Kit,Beauty,Adidas,678.03,834.49,18.7,3.9,791,140,2025-01-27
+prod_00025,Zara Smartphone Pro,Electronics,Zara,1099.79,1174.84,6.4,4.9,770,119,2024-10-29
+prod_00026,H&M Tire Set,Automotive,H&M,1072.85,1272.18,15.7,3.7,161,61,2025-02-26
+prod_00027,Xiaomi Fitness Tracker,Sports,Xiaomi,504.16,671.37,24.9,3.1,218,105,2024-10-30
+prod_00028,Nike Fitness Tracker,Sports,Nike,1290.95,1389.37,7.1,3.5,163,49,2025-07-02
+prod_00029,Data Science Handbook,Books,Sony,700.15,996.5,29.7,3.8,937,9,2025-01-05
+prod_00030,Sony Vacuum Cleaner,Home & Garden,Sony,81.52,106.83,23.7,3.6,573,45,2023-10-10
+prod_00031,Uniqlo Smartphone Pro,Electronics,Uniqlo,115.42,157.89,26.9,3.6,315,16,2023-01-20
+prod_00032,LG Tire Set,Automotive,LG,1295.9,1331.99,2.7,4.9,751,35,2024-12-01
+prod_00033,H&M Sneakers,Fashion,H&M,988.37,1025.48,3.6,4.3,604,198,2022-12-20
+prod_00034,Uniqlo Running Shoes,Sports,Uniqlo,495.39,514.25,3.7,4.6,347,149,2023-07-07
+prod_00035,Adidas Motor Oil,Automotive,Adidas,459.89,475.12,3.2,3.4,291,112,2024-06-07
+prod_00036,H&M Running Shoes,Sports,H&M,893.09,1006.2,11.2,4.9,334,139,2024-05-23
+prod_00037,Adidas Building Blocks,Toys,Adidas,1268.8,1764.9,28.1,3.7,742,94,2023-04-11
+prod_00038,Samsung Yoga Mat,Sports,Samsung,1583.55,1935.27,18.2,4.7,688,13,2023-08-23
+prod_00039,Machine Learning Basics,Books,Sony,646.77,800.15,19.2,4.4,934,175,2025-03-28
+prod_00040,Data Science Handbook,Books,Uniqlo,46.51,65.34,28.8,4.9,949,65,2024-09-25
+prod_00041,Adidas Jeans,Fashion,Adidas,337.33,460.25,26.7,4.8,656,81,2023-02-11
+prod_00042,Samsung Motor Oil,Automotive,Samsung,1309.96,1739.57,24.7,4.9,492,188,2024-06-03
+prod_00043,Xiaomi Skincare Set,Beauty,Xiaomi,1310.24,1657.58,21.0,4.0,370,107,2023-11-22
+prod_00044,Uniqlo Perfume,Beauty,Uniqlo,101.72,103.33,1.6,4.3,655,113,2023-05-12
+prod_00045,Samsung Coffee Maker,Home & Garden,Samsung,399.8,440.15,9.2,4.2,123,40,2024-11-17
+prod_00046,H&M Air Purifier,Home & Garden,H&M,610.53,850.12,28.2,3.9,904,188,2025-03-16
+prod_00047,Nike Yoga Mat,Sports,Nike,1087.83,1206.39,9.8,3.6,96,106,2024-07-19
+prod_00048,Xiaomi Coffee Maker,Home & Garden,Xiaomi,1390.25,1892.28,26.5,3.4,980,5,2022-12-28
+prod_00049,Data Science Handbook,Books,Apple,344.76,436.62,21.0,3.3,420,158,2024-05-17
+prod_00050,Nike Running Shoes,Sports,Nike,1820.27,1918.16,5.1,4.1,24,183,2024-02-08
+prod_00051,Uniqlo Tire Set,Automotive,Uniqlo,945.33,1013.59,6.7,3.4,978,200,2024-10-31
+prod_00052,Uniqlo Fitness Tracker,Sports,Uniqlo,225.82,303.89,25.7,4.2,853,72,2023-07-17
+prod_00053,Python Programming Guide,Books,Xiaomi,809.55,846.62,4.4,3.6,278,60,2023-11-06
+prod_00054,Adidas Building Blocks,Toys,Adidas,956.25,1186.66,19.4,3.2,490,34,2023-02-19
+prod_00055,Xiaomi Perfume,Beauty,Xiaomi,410.46,463.82,11.5,3.8,621,65,2025-05-17
+prod_00056,Zara T-Shirt,Fashion,Zara,109.27,151.62,27.9,3.9,372,155,2022-12-12
+prod_00057,Samsung Laptop Ultra,Electronics,Samsung,915.71,1033.86,11.4,5.0,697,94,2025-03-17
+prod_00058,H&M Smartphone Pro,Electronics,H&M,473.31,557.57,15.1,4.9,908,119,2025-03-17
+prod_00059,LG Sneakers,Fashion,LG,1038.2,1084.33,4.3,3.2,55,32,2024-03-06
+prod_00060,LG Fitness Tracker,Sports,LG,443.41,601.7,26.3,4.2,789,67,2024-02-17
+prod_00061,Xiaomi Skincare Set,Beauty,Xiaomi,466.8,665.31,29.8,4.5,164,142,2023-03-10
+prod_00062,Samsung Action Figure,Toys,Samsung,316.38,339.81,6.9,3.1,276,41,2023-08-08
+prod_00063,Xiaomi Action Figure,Toys,Xiaomi,1436.92,1990.64,27.8,3.1,375,181,2024-01-03
+prod_00064,Uniqlo Building Blocks,Toys,Uniqlo,211.2,269.36,21.6,3.3,367,23,2025-01-03
+prod_00065,Nike Running Shoes,Sports,Nike,1139.17,1512.38,24.7,4.1,689,149,2024-12-25
+prod_00066,Zara Headphones,Electronics,Zara,291.08,402.11,27.6,3.5,520,173,2025-04-25
+prod_00067,Samsung Makeup Kit,Beauty,Samsung,1097.07,1378.56,20.4,3.8,614,27,2023-03-26
+prod_00068,Nike Skincare Set,Beauty,Nike,156.22,208.07,24.9,4.3,474,160,2022-11-25
+prod_00069,H&M Yoga Mat,Sports,H&M,43.48,61.32,29.1,4.3,983,115,2024-09-01
+prod_00070,Adidas Vacuum Cleaner,Home & Garden,Adidas,1476.11,1613.04,8.5,4.6,771,18,2024-01-17
+prod_00071,Apple Motor Oil,Automotive,Apple,508.13,547.57,7.2,4.5,418,22,2025-07-09
+prod_00072,Data Science Handbook,Books,Nike,1435.8,1570.01,8.5,4.5,679,39,2025-03-29
+prod_00073,Uniqlo Fitness Tracker,Sports,Uniqlo,1074.37,1484.98,27.7,4.8,627,33,2024-07-28
+prod_00074,LG Sneakers,Fashion,LG,380.98,439.75,13.4,3.8,284,144,2023-11-24
+prod_00075,Apple Motor Oil,Automotive,Apple,1330.99,1631.44,18.4,3.9,446,23,2025-06-19
+prod_00076,Uniqlo Perfume,Beauty,Uniqlo,386.94,487.25,20.6,3.3,517,134,2023-10-25
+prod_00077,Sony Jeans,Fashion,Sony,657.12,902.84,27.2,4.0,162,32,2023-08-30
+prod_00078,Adidas Yoga Mat,Sports,Adidas,733.29,884.08,17.1,4.1,949,11,2024-02-21
+prod_00079,Zara Jeans,Fashion,Zara,736.15,855.39,13.9,4.4,842,64,2024-08-01
+prod_00080,H&M Running Shoes,Sports,H&M,1541.3,1548.86,0.5,4.5,483,45,2023-05-17
+prod_00081,Xiaomi Vacuum Cleaner,Home & Garden,Xiaomi,156.55,212.42,26.3,3.6,611,185,2024-04-21
+prod_00082,H&M Building Blocks,Toys,H&M,518.5,715.6,27.5,4.6,226,47,2025-05-11
+prod_00083,Apple Fitness Tracker,Sports,Apple,1090.12,1092.03,0.2,3.2,185,167,2024-03-29
+prod_00084,Xiaomi Board Game,Toys,Xiaomi,1584.23,1933.32,18.1,4.0,643,157,2024-07-26
+prod_00085,Sony Car Accessories,Automotive,Sony,292.7,293.92,0.4,3.2,26,178,2022-11-10
+prod_00086,Python Programming Guide,Books,Samsung,945.15,988.18,4.4,3.5,872,160,2023-03-05
+prod_00087,Data Science Handbook,Books,Apple,1482.02,1550.96,4.4,3.8,129,42,2023-01-18
+prod_00088,Uniqlo Coffee Maker,Home & Garden,Uniqlo,719.36,969.4,25.8,4.2,216,75,2023-12-25
+prod_00089,Samsung Motor Oil,Automotive,Samsung,52.99,65.35,18.9,4.4,435,126,2023-07-07
+prod_00090,Samsung Fitness Tracker,Sports,Samsung,701.65,829.38,15.4,4.4,967,173,2023-01-16
+prod_00091,Adidas Board Game,Toys,Adidas,167.41,168.37,0.6,4.2,576,16,2024-10-29
+prod_00092,Uniqlo Car Accessories,Automotive,Uniqlo,728.97,1014.84,28.2,3.7,724,111,2025-07-09
+prod_00093,Sony Air Purifier,Home & Garden,Sony,380.97,424.79,10.3,3.5,234,150,2023-01-12
+prod_00094,H&M Perfume,Beauty,H&M,1278.69,1331.07,3.9,3.6,738,99,2022-11-21
+prod_00095,LG Motor Oil,Automotive,LG,1201.73,1609.52,25.3,4.2,299,176,2023-06-24
+prod_00096,Uniqlo T-Shirt,Fashion,Uniqlo,369.73,387.92,4.7,4.0,822,106,2022-12-08
+prod_00097,Sony Action Figure,Toys,Sony,451.92,458.39,1.4,3.0,912,66,2024-07-30
+prod_00098,Nike Air Purifier,Home & Garden,Nike,110.2,112.34,1.9,3.9,642,58,2025-03-29
+prod_00099,Data Science Handbook,Books,Uniqlo,1519.62,1987.64,23.5,4.5,798,142,2024-10-30
+prod_00100,Zara Air Purifier,Home & Garden,Zara,1068.24,1355.5,21.2,4.9,458,117,2022-11-18
+prod_00101,Apple Sneakers,Fashion,Apple,919.81,1238.83,25.8,3.2,585,10,2024-02-27
+prod_00102,Nike Sneakers,Fashion,Nike,262.95,280.22,6.2,3.7,755,74,2023-08-05
+prod_00103,Zara Building Blocks,Toys,Zara,1434.43,1478.48,3.0,4.3,352,35,2025-03-27
+prod_00104,Data Science Handbook,Books,Uniqlo,1546.91,1549.98,0.2,4.7,495,87,2024-10-10
+prod_00105,Apple Coffee Maker,Home & Garden,Apple,600.47,776.25,22.6,3.7,690,62,2025-02-25
+prod_00106,Adidas Car Accessories,Automotive,Adidas,1413.34,1613.45,12.4,3.8,479,132,2023-05-09
+prod_00107,Samsung Makeup Kit,Beauty,Samsung,332.89,333.89,0.3,4.6,976,17,2025-05-05
+prod_00108,LG Makeup Kit,Beauty,LG,1867.93,1964.79,4.9,3.1,787,9,2023-09-23
+prod_00109,H&M Vacuum Cleaner,Home & Garden,H&M,1381.32,1956.58,29.4,4.6,906,133,2022-11-07
+prod_00110,Xiaomi Fitness Tracker,Sports,Xiaomi,1403.63,1777.28,21.0,4.7,748,190,2024-09-12
+prod_00111,Samsung Makeup Kit,Beauty,Samsung,1474.8,1805.41,18.3,3.3,423,114,2023-10-10
+prod_00112,Machine Learning Basics,Books,Zara,1276.78,1587.27,19.6,4.4,918,200,2023-10-05
+prod_00113,Adidas Motor Oil,Automotive,Adidas,179.79,214.35,16.1,3.8,746,189,2023-02-11
+prod_00114,Zara Air Purifier,Home & Garden,Zara,586.85,603.66,2.8,4.1,543,87,2023-06-16
+prod_00115,Samsung Vacuum Cleaner,Home & Garden,Samsung,1496.81,1786.12,16.2,3.5,862,198,2024-09-22
+prod_00116,Zara Car Accessories,Automotive,Zara,1104.37,1477.37,25.2,3.5,529,90,2025-03-26
+prod_00117,Apple Laptop Ultra,Electronics,Apple,491.53,631.02,22.1,3.9,251,190,2023-12-13
+prod_00118,Data Science Handbook,Books,LG,462.44,604.84,23.5,4.4,698,35,2023-07-30
+prod_00119,Zara Tire Set,Automotive,Zara,480.47,532.88,9.8,4.2,852,199,2024-07-26
+prod_00120,Apple Action Figure,Toys,Apple,1080.39,1437.7,24.9,3.2,73,108,2023-02-02
+prod_00121,Uniqlo Vacuum Cleaner,Home & Garden,Uniqlo,818.09,920.02,11.1,4.1,612,143,2024-02-15
+prod_00122,Sony Tire Set,Automotive,Sony,892.8,1022.71,12.7,3.9,963,125,2023-07-12
+prod_00123,Nike Car Accessories,Automotive,Nike,885.58,1036.28,14.5,3.9,731,131,2023-02-28
+prod_00124,Adidas Jeans,Fashion,Adidas,755.13,973.04,22.4,4.9,388,30,2023-11-22
+prod_00125,Apple Car Accessories,Automotive,Apple,703.74,770.69,8.7,4.0,130,95,2024-09-21
+prod_00126,Sony Makeup Kit,Beauty,Sony,760.77,997.55,23.7,3.3,613,107,2025-06-11
+prod_00127,Sony Running Shoes,Sports,Sony,316.69,407.0,22.2,3.0,570,89,2025-05-22
+prod_00128,Xiaomi Laptop Ultra,Electronics,Xiaomi,969.31,1167.47,17.0,4.8,810,96,2024-03-31
+prod_00129,Nike Air Purifier,Home & Garden,Nike,996.08,1291.1,22.9,4.3,162,186,2024-08-31
+prod_00130,H&M Sneakers,Fashion,H&M,1118.93,1266.0,11.6,4.8,357,138,2025-06-14
+prod_00131,Sony Board Game,Toys,Sony,211.57,222.63,5.0,3.0,655,197,2023-08-06
+prod_00132,Zara Yoga Mat,Sports,Zara,242.48,291.37,16.8,3.4,643,138,2023-12-18
+prod_00133,H&M Headphones,Electronics,H&M,359.46,419.32,14.3,4.8,133,168,2022-12-15
+prod_00134,Samsung Coffee Maker,Home & Garden,Samsung,1467.6,1584.18,7.4,4.4,918,148,2024-05-02
+prod_00135,Zara Sneakers,Fashion,Zara,555.62,674.84,17.7,4.0,966,5,2024-08-16
+prod_00136,Nike Motor Oil,Automotive,Nike,81.56,96.91,15.8,3.8,103,29,2025-04-20
+prod_00137,Sony Vacuum Cleaner,Home & Garden,Sony,312.58,406.2,23.0,3.3,985,104,2023-09-05
+prod_00138,Samsung Air Purifier,Home & Garden,Samsung,1819.44,1924.19,5.4,4.4,315,99,2025-04-20
+prod_00139,Nike Makeup Kit,Beauty,Nike,1652.75,1791.37,7.7,4.9,931,30,2025-06-07
+prod_00140,Machine Learning Basics,Books,Adidas,1016.36,1192.76,14.8,4.5,404,29,2024-10-28
+prod_00141,LG Laptop Ultra,Electronics,LG,1106.42,1128.59,2.0,3.1,658,59,2023-01-07
+prod_00142,Sony Headphones,Electronics,Sony,1538.14,1928.78,20.3,3.5,578,166,2023-05-18
+prod_00143,Sony Air Purifier,Home & Garden,Sony,821.93,843.15,2.5,4.3,218,200,2022-11-12
+prod_00144,LG Air Purifier,Home & Garden,LG,1508.86,1971.35,23.5,4.1,443,142,2024-04-24
+prod_00145,Samsung Laptop Ultra,Electronics,Samsung,1565.86,1924.17,18.6,4.3,181,0,2025-05-30
+prod_00146,Sony Board Game,Toys,Sony,429.23,539.23,20.4,5.0,872,161,2024-12-25
+prod_00147,Samsung Running Shoes,Sports,Samsung,1239.47,1491.41,16.9,3.6,414,178,2025-03-27
+prod_00148,Zara Coffee Maker,Home & Garden,Zara,1651.15,1762.64,6.3,4.0,831,81,2023-02-06
+prod_00149,Sony Perfume,Beauty,Sony,863.98,932.8,7.4,5.0,359,53,2024-04-16
+prod_00150,Samsung Perfume,Beauty,Samsung,224.78,310.77,27.7,4.2,14,2,2023-09-11
+prod_00151,Xiaomi Air Purifier,Home & Garden,Xiaomi,1416.88,1795.77,21.1,4.5,561,20,2023-05-16
+prod_00152,Zara T-Shirt,Fashion,Zara,1352.17,1790.52,24.5,3.9,136,90,2022-11-08
+prod_00153,H&M Motor Oil,Automotive,H&M,601.72,804.16,25.2,4.6,18,31,2024-04-13
+prod_00154,Adidas Makeup Kit,Beauty,Adidas,53.04,68.26,22.3,4.5,706,181,2024-07-29
+prod_00155,Machine Learning Basics,Books,Apple,961.4,1269.21,24.3,3.4,515,92,2025-06-23
+prod_00156,Uniqlo Yoga Mat,Sports,Uniqlo,1338.98,1428.59,6.3,3.4,850,163,2024-06-20
+prod_00157,Sony Sneakers,Fashion,Sony,973.18,1025.63,5.1,3.4,766,144,2023-09-11
+prod_00158,Apple Air Purifier,Home & Garden,Apple,294.22,300.08,2.0,3.5,593,58,2023-02-09
+prod_00159,Adidas Yoga Mat,Sports,Adidas,67.42,95.08,29.1,4.4,639,64,2023-09-02
+prod_00160,Samsung Building Blocks,Toys,Samsung,932.12,1299.88,28.3,3.1,971,82,2024-05-14
+prod_00161,Sony Car Accessories,Automotive,Sony,1183.68,1376.34,14.0,3.7,787,11,2023-02-06
+prod_00162,Data Science Handbook,Books,Samsung,1546.84,1840.86,16.0,3.6,411,49,2024-08-22
+prod_00163,H&M T-Shirt,Fashion,H&M,1846.92,1981.02,6.8,4.4,990,19,2023-01-03
+prod_00164,Python Programming Guide,Books,Adidas,678.94,691.99,1.9,4.3,38,122,2024-05-14
+prod_00165,H&M Headphones,Electronics,H&M,1400.99,1873.37,25.2,3.5,494,61,2022-11-22
+prod_00166,Samsung Makeup Kit,Beauty,Samsung,987.84,1063.37,7.1,3.1,624,158,2024-05-07
+prod_00167,Uniqlo Sneakers,Fashion,Uniqlo,207.63,293.41,29.2,4.8,396,80,2023-01-31
+prod_00168,Nike T-Shirt,Fashion,Nike,1598.04,1842.28,13.3,3.6,651,110,2025-05-24
+prod_00169,Samsung Sneakers,Fashion,Samsung,113.09,151.8,25.5,3.8,642,192,2024-06-05
+prod_00170,Machine Learning Basics,Books,H&M,1094.5,1266.82,13.6,3.9,448,158,2023-11-04
+prod_00171,LG Sneakers,Fashion,LG,1437.12,1878.29,23.5,3.9,346,150,2025-01-14
+prod_00172,Apple T-Shirt,Fashion,Apple,1186.06,1210.59,2.0,4.6,208,146,2025-03-23
+prod_00173,LG Fitness Tracker,Sports,LG,804.57,988.73,18.6,3.4,150,11,2025-05-30
+prod_00174,Sony Air Purifier,Home & Garden,Sony,640.8,899.9,28.8,4.5,328,149,2023-02-05
+prod_00175,Nike Coffee Maker,Home & Garden,Nike,584.85,651.92,10.3,3.7,18,132,2023-12-08
+prod_00176,Samsung Vacuum Cleaner,Home & Garden,Samsung,778.57,1038.86,25.1,4.7,442,88,2025-01-11
+prod_00177,Python Programming Guide,Books,Adidas,572.56,716.03,20.0,4.4,488,153,2023-08-21
+prod_00178,H&M Perfume,Beauty,H&M,1571.63,1927.98,18.5,3.8,176,26,2024-04-21
+prod_00179,Uniqlo Smartphone Pro,Electronics,Uniqlo,1490.56,1843.91,19.2,4.4,487,159,2024-12-24
+prod_00180,Machine Learning Basics,Books,Uniqlo,1169.89,1548.28,24.4,4.6,394,52,2024-06-16
+prod_00181,Samsung Coffee Maker,Home & Garden,Samsung,61.85,69.29,10.7,4.1,155,74,2024-05-06
+prod_00182,Data Science Handbook,Books,H&M,134.41,135.61,0.9,3.4,188,56,2023-02-05
+prod_00183,Nike Fitness Tracker,Sports,Nike,1577.05,1702.69,7.4,3.4,190,67,2023-01-10
+prod_00184,Samsung Sneakers,Fashion,Samsung,255.22,317.62,19.6,4.8,356,53,2024-09-21
+prod_00185,Adidas Building Blocks,Toys,Adidas,1305.61,1628.5,19.8,4.9,828,159,2023-02-09
+prod_00186,Apple Car Accessories,Automotive,Apple,239.7,331.64,27.7,4.6,206,136,2024-07-08
+prod_00187,LG Perfume,Beauty,LG,718.21,887.6,19.1,4.8,791,157,2023-12-07
+prod_00188,Data Science Handbook,Books,Zara,1433.42,1589.7,9.8,3.1,824,71,2023-02-18
+prod_00189,Zara Air Purifier,Home & Garden,Zara,1665.81,1777.38,6.3,3.2,491,169,2023-11-09
+prod_00190,Nike Sneakers,Fashion,Nike,593.24,806.83,26.5,4.5,393,127,2024-02-15
+prod_00191,Nike Building Blocks,Toys,Nike,1212.45,1439.35,15.8,4.0,988,126,2024-04-01
+prod_00192,H&M Fitness Tracker,Sports,H&M,987.31,1294.31,23.7,4.3,222,56,2023-01-26
+prod_00193,Python Programming Guide,Books,Uniqlo,746.55,822.0,9.2,4.8,595,40,2022-12-16
+prod_00194,Sony Perfume,Beauty,Sony,166.74,215.28,22.5,3.6,541,90,2024-12-07
+prod_00195,Uniqlo Headphones,Electronics,Uniqlo,1099.98,1261.2,12.8,3.9,428,94,2023-04-29
+prod_00196,LG Building Blocks,Toys,LG,752.76,795.62,5.4,3.5,670,19,2024-07-28
+prod_00197,Sony Sneakers,Fashion,Sony,847.2,1049.94,19.3,4.6,958,58,2025-04-21
+prod_00198,Apple Jeans,Fashion,Apple,117.16,124.65,6.0,3.4,347,64,2024-09-24
+prod_00199,Adidas Yoga Mat,Sports,Adidas,1177.08,1227.87,4.1,4.7,743,189,2024-01-21
+prod_00200,Samsung Fitness Tracker,Sports,Samsung,537.25,599.6,10.4,5.0,978,103,2023-04-11
+prod_00201,Uniqlo Headphones,Electronics,Uniqlo,809.97,1049.66,22.8,3.3,417,58,2024-12-10
+prod_00202,Python Programming Guide,Books,Uniqlo,806.9,1055.86,23.6,4.5,749,118,2024-08-16
+prod_00203,LG T-Shirt,Fashion,LG,635.74,886.15,28.3,3.8,459,115,2023-03-10
+prod_00204,LG Smartphone Pro,Electronics,LG,1130.86,1176.14,3.9,4.9,19,127,2023-04-23
+prod_00205,LG Skincare Set,Beauty,LG,688.9,867.34,20.6,3.8,807,176,2024-01-27
+prod_00206,LG Yoga Mat,Sports,LG,72.86,95.32,23.6,4.8,167,84,2023-12-27
+prod_00207,Xiaomi Car Accessories,Automotive,Xiaomi,1863.64,1899.95,1.9,3.8,496,27,2024-08-28
+prod_00208,Sony Action Figure,Toys,Sony,306.47,384.28,20.2,3.4,856,176,2023-11-21
+prod_00209,Samsung Action Figure,Toys,Samsung,318.28,438.05,27.3,3.8,220,59,2024-10-05
+prod_00210,Uniqlo T-Shirt,Fashion,Uniqlo,766.32,768.87,0.3,3.7,941,105,2024-06-25
+prod_00211,Apple Vacuum Cleaner,Home & Garden,Apple,938.82,1096.08,14.3,3.1,988,52,2025-03-19
+prod_00212,Data Science Handbook,Books,Sony,1316.84,1644.9,19.9,3.3,598,79,2023-12-07
+prod_00213,Machine Learning Basics,Books,Zara,1270.95,1385.43,8.3,3.0,156,114,2025-05-26
+prod_00214,H&M Car Accessories,Automotive,H&M,781.73,1075.42,27.3,4.8,481,118,2023-12-19
+prod_00215,Apple Laptop Ultra,Electronics,Apple,949.08,1310.28,27.6,3.7,872,182,2023-05-11
+prod_00216,Xiaomi Yoga Mat,Sports,Xiaomi,1233.56,1655.69,25.5,3.8,193,158,2023-07-11
+prod_00217,Uniqlo Motor Oil,Automotive,Uniqlo,1725.63,1826.12,5.5,4.1,412,178,2022-12-05
+prod_00218,Adidas Smartphone Pro,Electronics,Adidas,473.85,583.86,18.8,3.6,948,17,2023-08-16
+prod_00219,Data Science Handbook,Books,Uniqlo,1655.93,1985.16,16.6,5.0,88,193,2025-04-14
+prod_00220,Xiaomi Makeup Kit,Beauty,Xiaomi,348.33,371.44,6.2,3.1,37,18,2023-10-15
+prod_00221,Xiaomi Building Blocks,Toys,Xiaomi,1118.33,1504.62,25.7,3.8,20,64,2025-04-04
+prod_00222,LG Air Purifier,Home & Garden,LG,1290.33,1509.92,14.5,3.1,571,168,2024-11-24
+prod_00223,Nike Building Blocks,Toys,Nike,1233.3,1649.83,25.2,3.3,28,155,2025-04-19
+prod_00224,Sony Vacuum Cleaner,Home & Garden,Sony,964.47,1092.57,11.7,3.2,791,2,2023-09-06
+prod_00225,Nike Fitness Tracker,Sports,Nike,699.63,748.27,6.5,3.1,701,136,2024-12-21
+prod_00226,Samsung Board Game,Toys,Samsung,1318.52,1632.45,19.2,4.4,928,26,2024-06-26
+prod_00227,Uniqlo Running Shoes,Sports,Uniqlo,1198.74,1216.5,1.5,3.8,216,63,2024-07-12
+prod_00228,Python Programming Guide,Books,Adidas,80.59,81.27,0.8,3.0,850,49,2023-09-03
+prod_00229,Adidas T-Shirt,Fashion,Adidas,1204.39,1604.0,24.9,3.3,181,11,2024-05-31
+prod_00230,LG Jeans,Fashion,LG,1080.84,1146.01,5.7,3.4,564,101,2022-12-12
+prod_00231,Apple Car Accessories,Automotive,Apple,416.93,466.87,10.7,3.3,421,167,2024-09-10
+prod_00232,Xiaomi Smartphone Pro,Electronics,Xiaomi,925.91,944.61,2.0,4.6,675,159,2024-07-18
+prod_00233,Apple Smartphone Pro,Electronics,Apple,655.54,851.64,23.0,4.0,114,182,2024-01-28
+prod_00234,Sony Vacuum Cleaner,Home & Garden,Sony,860.62,1219.74,29.4,4.4,704,197,2023-08-20
+prod_00235,LG Vacuum Cleaner,Home & Garden,LG,947.13,1288.94,26.5,3.6,881,170,2024-03-24
+prod_00236,LG T-Shirt,Fashion,LG,1019.6,1236.64,17.6,3.8,665,189,2024-12-04
+prod_00237,Adidas Smartphone Pro,Electronics,Adidas,915.08,1251.88,26.9,3.6,765,109,2023-06-16
+prod_00238,Python Programming Guide,Books,H&M,148.1,166.85,11.2,3.6,165,96,2025-01-02
+prod_00239,Adidas Headphones,Electronics,Adidas,871.12,1216.25,28.4,4.5,346,34,2024-10-19
+prod_00240,Samsung Perfume,Beauty,Samsung,1395.57,1593.97,12.4,4.6,778,6,2024-12-08
+prod_00241,LG Skincare Set,Beauty,LG,444.02,451.34,1.6,4.8,264,175,2023-08-18
+prod_00242,Data Science Handbook,Books,H&M,1008.12,1066.87,5.5,4.3,76,125,2025-05-20
+prod_00243,Machine Learning Basics,Books,Samsung,1425.84,1984.42,28.1,3.3,187,151,2024-01-15
+prod_00244,Machine Learning Basics,Books,Adidas,158.39,202.42,21.7,3.6,748,50,2024-11-22
+prod_00245,Nike Tire Set,Automotive,Nike,489.65,535.49,8.6,3.9,660,51,2024-10-25
+prod_00246,Apple Building Blocks,Toys,Apple,784.98,826.58,5.0,3.9,527,156,2023-07-09
+prod_00247,Nike Motor Oil,Automotive,Nike,78.49,88.63,11.4,4.7,787,76,2023-11-29
+prod_00248,Zara Air Purifier,Home & Garden,Zara,347.8,392.61,11.4,3.6,300,96,2024-01-02
+prod_00249,Apple Building Blocks,Toys,Apple,271.93,316.48,14.1,3.3,204,1,2025-07-17
+prod_00250,Uniqlo Makeup Kit,Beauty,Uniqlo,1331.8,1855.1,28.2,4.9,392,98,2024-03-16
+prod_00251,H&M Running Shoes,Sports,H&M,837.27,847.14,1.2,4.8,404,144,2025-02-14
+prod_00252,Data Science Handbook,Books,Xiaomi,1203.6,1553.98,22.5,3.7,736,125,2023-10-19
+prod_00253,Samsung Perfume,Beauty,Samsung,699.45,801.4,12.7,3.5,499,8,2022-12-30
+prod_00254,Samsung Perfume,Beauty,Samsung,1288.26,1348.07,4.4,4.2,976,174,2025-03-02
+prod_00255,Adidas Yoga Mat,Sports,Adidas,943.65,1177.77,19.9,3.3,129,197,2025-04-27
+prod_00256,Xiaomi Tire Set,Automotive,Xiaomi,870.54,1193.01,27.0,4.0,203,108,2025-02-11
+prod_00257,Sony Tire Set,Automotive,Sony,453.73,639.33,29.0,4.3,401,150,2024-09-18
+prod_00258,Apple Car Accessories,Automotive,Apple,989.84,1290.55,23.3,3.7,156,68,2023-06-25
+prod_00259,Machine Learning Basics,Books,Xiaomi,458.09,650.8,29.6,4.6,11,24,2025-05-20
+prod_00260,Zara Motor Oil,Automotive,Zara,1034.64,1326.32,22.0,3.3,393,47,2023-08-10
+prod_00261,Adidas Coffee Maker,Home & Garden,Adidas,289.67,404.87,28.5,3.9,843,54,2025-01-21
+prod_00262,Machine Learning Basics,Books,Samsung,313.78,406.32,22.8,3.5,933,104,2024-05-05
+prod_00263,Nike T-Shirt,Fashion,Nike,551.16,621.59,11.3,3.6,360,7,2023-12-09
+prod_00264,Data Science Handbook,Books,Uniqlo,1320.78,1361.97,3.0,3.1,779,1,2023-09-18
+prod_00265,Apple Smartphone Pro,Electronics,Apple,1066.22,1068.55,0.2,4.2,995,194,2024-10-31
+prod_00266,Uniqlo Building Blocks,Toys,Uniqlo,1104.49,1228.52,10.1,4.4,361,80,2023-04-16
+prod_00267,Machine Learning Basics,Books,LG,675.47,827.02,18.3,5.0,904,84,2023-04-27
+prod_00268,Samsung Jeans,Fashion,Samsung,1536.9,1747.56,12.1,4.7,957,35,2025-07-04
+prod_00269,Zara Jeans,Fashion,Zara,1475.22,1904.57,22.5,3.5,472,158,2023-08-28
+prod_00270,Zara Building Blocks,Toys,Zara,1336.19,1337.45,0.1,4.3,974,82,2025-07-13
+prod_00271,Samsung Perfume,Beauty,Samsung,593.5,684.77,13.3,4.2,419,189,2023-11-11
+prod_00272,LG Jeans,Fashion,LG,1349.88,1881.22,28.2,4.0,684,179,2023-01-16
+prod_00273,Xiaomi Jeans,Fashion,Xiaomi,970.43,1233.99,21.4,4.7,907,146,2023-05-19
+prod_00274,Nike Laptop Ultra,Electronics,Nike,1458.81,1603.8,9.0,4.3,571,119,2025-02-08
+prod_00275,Apple Building Blocks,Toys,Apple,1245.15,1342.15,7.2,3.4,781,168,2023-08-14
+prod_00276,Apple Jeans,Fashion,Apple,1969.64,1987.05,0.9,4.9,344,98,2023-06-07
+prod_00277,Adidas Yoga Mat,Sports,Adidas,473.45,552.38,14.3,4.8,136,170,2025-03-13
+prod_00278,Apple Board Game,Toys,Apple,652.03,698.96,6.7,4.2,956,153,2025-05-25
+prod_00279,Xiaomi Perfume,Beauty,Xiaomi,1172.79,1498.79,21.8,4.3,813,143,2022-11-14
+prod_00280,Adidas Car Accessories,Automotive,Adidas,506.77,555.23,8.7,3.2,358,189,2023-12-02
+prod_00281,Machine Learning Basics,Books,Apple,570.71,767.09,25.6,4.9,600,188,2025-07-29
+prod_00282,Samsung Yoga Mat,Sports,Samsung,816.29,1094.43,25.4,5.0,337,197,2024-07-22
+prod_00283,Zara Air Purifier,Home & Garden,Zara,1141.64,1223.15,6.7,3.8,561,117,2024-09-10
+prod_00284,Sony Vacuum Cleaner,Home & Garden,Sony,884.56,1024.67,13.7,4.2,159,191,2023-09-18
+prod_00285,H&M Laptop Ultra,Electronics,H&M,458.53,652.34,29.7,3.2,878,180,2023-12-21
+prod_00286,Adidas Building Blocks,Toys,Adidas,439.11,618.42,29.0,3.1,839,85,2025-02-24
+prod_00287,Machine Learning Basics,Books,Adidas,1073.49,1484.66,27.7,4.6,887,124,2023-07-17
+prod_00288,Sony Tire Set,Automotive,Sony,1741.78,1829.13,4.8,3.0,411,86,2024-05-24
+prod_00289,LG Building Blocks,Toys,LG,683.9,812.57,15.8,3.6,723,49,2023-08-13
+prod_00290,Apple Car Accessories,Automotive,Apple,519.09,680.67,23.7,4.7,65,181,2024-09-22
+prod_00291,Nike Board Game,Toys,Nike,251.8,318.24,20.9,3.6,158,53,2024-12-19
+prod_00292,Data Science Handbook,Books,Samsung,1212.5,1465.62,17.3,4.4,889,37,2024-07-10
+prod_00293,Nike Car Accessories,Automotive,Nike,167.94,237.29,29.2,3.4,63,30,2024-02-19
+prod_00294,H&M Makeup Kit,Beauty,H&M,1575.89,1940.97,18.8,3.8,44,30,2024-11-26
+prod_00295,Uniqlo Motor Oil,Automotive,Uniqlo,993.07,1391.57,28.6,4.3,394,198,2023-08-22
+prod_00296,Uniqlo Sneakers,Fashion,Uniqlo,644.27,795.1,19.0,3.9,21,30,2025-04-02
+prod_00297,Apple Jeans,Fashion,Apple,946.24,1300.75,27.3,3.4,610,146,2023-12-22
+prod_00298,Sony Board Game,Toys,Sony,1145.17,1503.45,23.8,3.4,505,165,2023-08-11
+prod_00299,Sony Tire Set,Automotive,Sony,265.51,294.21,9.8,4.4,892,137,2025-01-22
+prod_00300,Samsung Motor Oil,Automotive,Samsung,951.78,1134.32,16.1,4.6,510,16,2024-02-15
+prod_00301,Adidas Sneakers,Fashion,Adidas,1702.75,1800.32,5.4,4.2,194,1,2024-01-09
+prod_00302,LG Action Figure,Toys,LG,104.53,126.33,17.3,4.3,99,143,2024-11-10
+prod_00303,Apple Smartphone Pro,Electronics,Apple,923.89,1036.99,10.9,4.1,443,168,2025-07-30
+prod_00304,Python Programming Guide,Books,Sony,1599.8,1895.12,15.6,4.6,684,136,2024-05-01
+prod_00305,H&M Coffee Maker,Home & Garden,H&M,1185.07,1405.45,15.7,5.0,370,155,2024-01-26
+prod_00306,Machine Learning Basics,Books,Apple,1531.28,1648.54,7.1,3.4,316,55,2022-11-23
+prod_00307,H&M Air Purifier,Home & Garden,H&M,420.51,471.28,10.8,3.3,647,108,2025-05-15
+prod_00308,Sony Fitness Tracker,Sports,Sony,1252.52,1317.05,4.9,3.9,977,65,2023-09-07
+prod_00309,Nike Tire Set,Automotive,Nike,362.85,447.34,18.9,3.5,658,178,2023-10-08
+prod_00310,Machine Learning Basics,Books,LG,1003.95,1331.77,24.6,4.2,439,39,2024-09-10
+prod_00311,Xiaomi Car Accessories,Automotive,Xiaomi,1786.55,1929.83,7.4,3.5,554,28,2023-08-30
+prod_00312,Apple Motor Oil,Automotive,Apple,1157.03,1298.35,10.9,3.7,289,37,2023-02-22
+prod_00313,Python Programming Guide,Books,Sony,170.18,241.0,29.4,3.4,984,26,2023-05-21
+prod_00314,Nike Sneakers,Fashion,Nike,1335.03,1470.24,9.2,4.6,511,24,2024-02-05
+prod_00315,H&M Makeup Kit,Beauty,H&M,920.39,1125.51,18.2,4.8,184,81,2022-12-04
+prod_00316,Nike Motor Oil,Automotive,Nike,1292.07,1621.87,20.3,4.6,574,152,2023-02-08
+prod_00317,Uniqlo Tire Set,Automotive,Uniqlo,297.91,298.77,0.3,4.0,169,168,2025-03-23
+prod_00318,Xiaomi Air Purifier,Home & Garden,Xiaomi,1460.54,1484.07,1.6,4.5,389,181,2023-05-26
+prod_00319,Data Science Handbook,Books,H&M,1349.78,1428.23,5.5,5.0,827,119,2024-03-03
+prod_00320,Sony Fitness Tracker,Sports,Sony,835.58,1065.16,21.6,4.8,244,78,2023-10-19
+prod_00321,Sony Jeans,Fashion,Sony,1158.92,1552.63,25.4,4.3,88,186,2024-11-27
+prod_00322,Nike Sneakers,Fashion,Nike,125.83,161.95,22.3,4.1,514,2,2022-11-18
+prod_00323,Zara Tire Set,Automotive,Zara,268.84,316.04,14.9,4.4,703,136,2023-08-16
+prod_00324,Xiaomi T-Shirt,Fashion,Xiaomi,909.7,1251.76,27.3,4.5,741,108,2023-08-11
+prod_00325,Adidas Perfume,Beauty,Adidas,969.46,1339.29,27.6,5.0,977,135,2023-08-30
+prod_00326,H&M Laptop Ultra,Electronics,H&M,1540.3,1931.06,20.2,4.8,546,57,2025-02-01
+prod_00327,LG T-Shirt,Fashion,LG,751.17,1051.68,28.6,3.8,398,43,2024-07-13
+prod_00328,LG Sneakers,Fashion,LG,450.18,537.04,16.2,4.5,130,74,2024-09-27
+prod_00329,Sony Building Blocks,Toys,Sony,362.42,465.48,22.1,4.1,232,78,2022-12-22
+prod_00330,Uniqlo Headphones,Electronics,Uniqlo,1674.89,1704.29,1.7,3.0,481,84,2024-09-28
+prod_00331,Apple Skincare Set,Beauty,Apple,573.32,731.96,21.7,3.8,19,25,2024-05-15
+prod_00332,Adidas Action Figure,Toys,Adidas,790.15,1081.74,27.0,3.8,945,124,2025-07-23
+prod_00333,Sony Vacuum Cleaner,Home & Garden,Sony,859.18,967.86,11.2,3.7,923,46,2024-01-28
+prod_00334,Apple Fitness Tracker,Sports,Apple,1154.48,1329.75,13.2,3.3,775,111,2025-07-25
+prod_00335,Adidas Skincare Set,Beauty,Adidas,414.59,419.66,1.2,3.8,771,84,2023-01-20
+prod_00336,Nike Headphones,Electronics,Nike,375.05,438.03,14.4,4.3,282,30,2024-05-25
+prod_00337,Zara Building Blocks,Toys,Zara,1264.71,1609.65,21.4,3.6,792,199,2023-02-09
+prod_00338,Zara Tire Set,Automotive,Zara,1382.81,1850.94,25.3,3.8,122,27,2023-05-11
+prod_00339,Nike Smartphone Pro,Electronics,Nike,718.08,721.04,0.4,4.4,63,173,2023-04-03
+prod_00340,Xiaomi Perfume,Beauty,Xiaomi,1294.11,1487.99,13.0,3.6,507,21,2023-06-12
+prod_00341,Adidas Tire Set,Automotive,Adidas,294.09,347.37,15.3,3.5,795,29,2023-02-27
+prod_00342,Adidas Yoga Mat,Sports,Adidas,1551.96,1650.19,6.0,4.4,839,26,2023-08-13
+prod_00343,Adidas Air Purifier,Home & Garden,Adidas,1219.42,1276.37,4.5,3.2,420,9,2024-10-23
+prod_00344,Data Science Handbook,Books,Nike,79.38,84.44,6.0,4.7,399,104,2024-02-09
+prod_00345,Adidas Running Shoes,Sports,Adidas,604.12,705.55,14.4,4.0,669,13,2024-09-22
+prod_00346,Sony Jeans,Fashion,Sony,534.21,597.08,10.5,3.8,337,12,2025-01-25
+prod_00347,Samsung Smartphone Pro,Electronics,Samsung,1208.75,1337.84,9.6,3.6,296,155,2025-04-18
+prod_00348,Nike Motor Oil,Automotive,Nike,1692.08,1899.24,10.9,3.6,109,171,2025-07-17
+prod_00349,LG Coffee Maker,Home & Garden,LG,1333.38,1495.52,10.8,4.6,551,154,2024-07-15
+prod_00350,Python Programming Guide,Books,Sony,1158.31,1189.44,2.6,3.2,654,190,2023-11-22
+prod_00351,Samsung Sneakers,Fashion,Samsung,1424.2,1938.24,26.5,4.6,207,180,2024-04-30
+prod_00352,Apple Sneakers,Fashion,Apple,1143.38,1257.07,9.0,3.9,789,51,2024-01-31
+prod_00353,Samsung Vacuum Cleaner,Home & Garden,Samsung,353.83,423.83,16.5,3.5,908,194,2023-03-10
+prod_00354,LG Makeup Kit,Beauty,LG,1233.21,1278.24,3.5,3.9,504,107,2024-02-10
+prod_00355,Nike Headphones,Electronics,Nike,414.91,584.59,29.0,3.6,988,144,2025-05-29
+prod_00356,Data Science Handbook,Books,Xiaomi,1023.52,1385.15,26.1,4.9,179,112,2023-06-23
+prod_00357,Zara Motor Oil,Automotive,Zara,763.92,831.66,8.1,3.4,173,146,2024-12-19
+prod_00358,Zara Laptop Ultra,Electronics,Zara,809.26,1032.44,21.6,3.5,882,56,2024-09-30
+prod_00359,Zara Running Shoes,Sports,Zara,378.41,383.66,1.4,3.5,50,163,2025-03-01
+prod_00360,Nike Fitness Tracker,Sports,Nike,1726.0,1753.1,1.5,5.0,853,53,2024-01-30
+prod_00361,Samsung Sneakers,Fashion,Samsung,595.47,727.55,18.2,3.7,95,180,2023-02-06
+prod_00362,Nike Fitness Tracker,Sports,Nike,1642.36,1801.75,8.8,5.0,650,2,2023-04-09
+prod_00363,Adidas Perfume,Beauty,Adidas,1829.75,1932.19,5.3,4.9,560,168,2023-02-23
+prod_00364,Xiaomi Sneakers,Fashion,Xiaomi,448.15,551.82,18.8,4.2,221,113,2024-12-17
+prod_00365,Sony Skincare Set,Beauty,Sony,897.28,1184.24,24.2,4.5,169,114,2024-12-05
+prod_00366,LG Car Accessories,Automotive,LG,1758.38,1809.23,2.8,3.4,199,45,2025-01-18
+prod_00367,Nike Board Game,Toys,Nike,544.16,599.99,9.3,4.8,847,100,2023-08-27
+prod_00368,Python Programming Guide,Books,Apple,176.48,190.49,7.4,4.8,422,25,2023-07-20
+prod_00369,Samsung Air Purifier,Home & Garden,Samsung,216.31,244.47,11.5,3.2,23,195,2023-04-02
+prod_00370,Nike Smartphone Pro,Electronics,Nike,1427.13,1551.73,8.0,4.9,624,3,2023-05-11
+prod_00371,Apple Headphones,Electronics,Apple,1334.66,1485.46,10.2,4.4,217,35,2024-03-26
+prod_00372,Nike Building Blocks,Toys,Nike,664.62,696.92,4.6,3.1,718,68,2023-10-27
+prod_00373,Samsung T-Shirt,Fashion,Samsung,228.19,250.49,8.9,4.0,866,106,2025-03-07
+prod_00374,Adidas Smartphone Pro,Electronics,Adidas,435.13,492.02,11.6,3.7,303,57,2022-12-30
+prod_00375,Apple Motor Oil,Automotive,Apple,368.06,380.64,3.3,3.2,988,72,2024-07-30
+prod_00376,H&M Jeans,Fashion,H&M,203.01,280.78,27.7,4.8,927,11,2023-11-19
+prod_00377,Nike Coffee Maker,Home & Garden,Nike,889.36,1084.44,18.0,4.4,163,170,2023-08-27
+prod_00378,H&M Fitness Tracker,Sports,H&M,706.61,729.35,3.1,4.8,687,94,2022-12-18
+prod_00379,Apple Running Shoes,Sports,Apple,1222.63,1730.34,29.3,4.6,160,81,2025-03-01
+prod_00380,Uniqlo Tire Set,Automotive,Uniqlo,1134.09,1603.86,29.3,4.6,125,147,2024-05-19
+prod_00381,Nike Running Shoes,Sports,Nike,653.94,679.95,3.8,4.5,371,81,2024-03-11
+prod_00382,Uniqlo Tire Set,Automotive,Uniqlo,1595.57,1947.06,18.1,4.3,151,167,2022-12-30
+prod_00383,Data Science Handbook,Books,Xiaomi,940.0,1121.21,16.2,4.0,559,58,2024-07-02
+prod_00384,H&M Sneakers,Fashion,H&M,721.31,872.59,17.3,4.4,776,56,2023-08-11
+prod_00385,Adidas Jeans,Fashion,Adidas,39.01,55.59,29.8,3.0,581,121,2022-11-23
+prod_00386,Apple Vacuum Cleaner,Home & Garden,Apple,1629.35,1827.16,10.8,4.7,807,35,2024-10-02
+prod_00387,Nike Board Game,Toys,Nike,1412.33,1945.05,27.4,3.5,857,57,2025-06-03
+prod_00388,Apple Air Purifier,Home & Garden,Apple,1261.62,1422.73,11.3,3.1,998,108,2024-07-15
+prod_00389,Apple Headphones,Electronics,Apple,1014.75,1184.13,14.3,4.2,171,7,2025-03-02
+prod_00390,Nike Skincare Set,Beauty,Nike,525.86,527.84,0.4,4.7,436,38,2023-06-08
+prod_00391,Uniqlo Air Purifier,Home & Garden,Uniqlo,272.07,323.22,15.8,4.9,491,105,2023-07-22
+prod_00392,Uniqlo Perfume,Beauty,Uniqlo,1284.8,1405.73,8.6,3.3,912,164,2025-06-28
+prod_00393,Zara Vacuum Cleaner,Home & Garden,Zara,53.41,71.19,25.0,4.4,906,116,2024-01-10
+prod_00394,H&M Yoga Mat,Sports,H&M,602.66,646.77,6.8,4.9,288,23,2024-02-12
+prod_00395,Nike Tire Set,Automotive,Nike,377.12,463.14,18.6,3.4,198,190,2022-11-04
+prod_00396,Uniqlo Jeans,Fashion,Uniqlo,533.49,660.72,19.3,4.7,178,13,2023-04-30
+prod_00397,Xiaomi Skincare Set,Beauty,Xiaomi,558.29,576.34,3.1,3.7,807,85,2025-07-02
+prod_00398,Python Programming Guide,Books,Sony,1084.38,1106.06,2.0,4.2,784,79,2025-01-19
+prod_00399,Python Programming Guide,Books,Samsung,406.44,574.88,29.3,4.1,587,123,2025-06-14
+prod_00400,LG Smartphone Pro,Electronics,LG,1885.04,1889.84,0.3,3.7,299,101,2024-03-05
+prod_00401,Data Science Handbook,Books,LG,1037.06,1465.09,29.2,4.4,109,84,2024-06-08
+prod_00402,Zara T-Shirt,Fashion,Zara,73.22,96.19,23.9,4.0,899,9,2024-10-06
+prod_00403,Nike Air Purifier,Home & Garden,Nike,699.96,953.06,26.6,3.2,745,59,2023-02-06
+prod_00404,Machine Learning Basics,Books,Nike,258.8,364.04,28.9,4.0,756,155,2023-10-02
+prod_00405,Uniqlo Skincare Set,Beauty,Uniqlo,634.23,711.09,10.8,4.7,451,10,2023-01-30
+prod_00406,Adidas Car Accessories,Automotive,Adidas,1631.1,1994.17,18.2,4.9,590,160,2024-03-08
+prod_00407,Samsung T-Shirt,Fashion,Samsung,1400.91,1544.32,9.3,4.7,826,200,2023-01-26
+prod_00408,Uniqlo T-Shirt,Fashion,Uniqlo,889.17,936.88,5.1,3.6,79,71,2023-12-18
+prod_00409,LG Skincare Set,Beauty,LG,148.48,188.71,21.3,3.9,494,65,2023-06-10
+prod_00410,Nike Action Figure,Toys,Nike,1659.91,1944.78,14.6,3.7,303,102,2024-06-07
+prod_00411,Uniqlo Coffee Maker,Home & Garden,Uniqlo,852.7,1049.33,18.7,3.6,95,174,2024-06-02
+prod_00412,Sony Board Game,Toys,Sony,94.15,133.22,29.3,3.1,819,62,2023-08-14
+prod_00413,Nike Smartphone Pro,Electronics,Nike,587.51,616.79,4.7,3.8,84,57,2024-06-28
+prod_00414,Apple Building Blocks,Toys,Apple,773.72,958.46,19.3,4.8,486,27,2025-05-04
+prod_00415,Apple Coffee Maker,Home & Garden,Apple,1455.39,1548.02,6.0,3.7,334,87,2023-11-20
+prod_00416,Adidas Board Game,Toys,Adidas,1444.21,1495.51,3.4,3.9,568,39,2022-12-02
+prod_00417,Nike Board Game,Toys,Nike,386.79,466.27,17.0,5.0,802,97,2025-05-28
+prod_00418,Xiaomi Makeup Kit,Beauty,Xiaomi,436.59,466.17,6.3,3.0,786,175,2024-05-23
+prod_00419,Sony Yoga Mat,Sports,Sony,376.68,393.41,4.3,3.5,93,76,2023-02-17
+prod_00420,Xiaomi Board Game,Toys,Xiaomi,342.25,467.5,26.8,3.4,65,23,2023-01-26
+prod_00421,LG Motor Oil,Automotive,LG,331.98,370.84,10.5,3.8,496,137,2023-08-25
+prod_00422,Xiaomi Coffee Maker,Home & Garden,Xiaomi,1516.54,1829.57,17.1,4.6,584,200,2023-01-27
+prod_00423,Machine Learning Basics,Books,Apple,1102.37,1352.53,18.5,3.6,853,187,2023-07-01
+prod_00424,Samsung Skincare Set,Beauty,Samsung,1294.43,1798.18,28.0,4.0,334,29,2023-05-11
+prod_00425,Sony Tire Set,Automotive,Sony,1026.07,1458.46,29.6,4.9,887,32,2023-10-20
+prod_00426,H&M Action Figure,Toys,H&M,94.05,121.15,22.4,3.4,723,139,2023-05-30
+prod_00427,H&M Coffee Maker,Home & Garden,H&M,441.8,471.47,6.3,3.4,705,147,2022-11-25
+prod_00428,LG Laptop Ultra,Electronics,LG,59.63,81.57,26.9,4.0,898,31,2023-08-14
+prod_00429,Uniqlo Building Blocks,Toys,Uniqlo,760.41,850.25,10.6,4.1,545,195,2024-08-21
+prod_00430,Nike Jeans,Fashion,Nike,838.36,885.35,5.3,4.2,565,111,2024-07-05
+prod_00431,Xiaomi Yoga Mat,Sports,Xiaomi,490.23,602.33,18.6,4.9,887,25,2025-05-02
+prod_00432,Apple Sneakers,Fashion,Apple,59.08,82.03,28.0,3.2,777,192,2023-10-31
+prod_00433,Uniqlo Sneakers,Fashion,Uniqlo,1171.82,1183.41,1.0,3.6,440,54,2024-12-14
+prod_00434,Zara Building Blocks,Toys,Zara,203.07,273.28,25.7,4.9,369,118,2024-06-03
+prod_00435,Samsung Motor Oil,Automotive,Samsung,1335.42,1575.28,15.2,3.5,684,67,2024-09-19
+prod_00436,Adidas Car Accessories,Automotive,Adidas,1580.84,1805.37,12.4,3.0,167,95,2023-03-23
+prod_00437,LG Skincare Set,Beauty,LG,1348.39,1920.36,29.8,3.5,410,49,2023-11-07
+prod_00438,Samsung Tire Set,Automotive,Samsung,636.85,886.75,28.2,3.8,755,44,2024-06-13
+prod_00439,Zara Skincare Set,Beauty,Zara,875.96,902.93,3.0,4.6,526,30,2023-10-23
+prod_00440,Sony Tire Set,Automotive,Sony,325.32,360.15,9.7,3.2,36,111,2025-07-19
+prod_00441,Samsung Air Purifier,Home & Garden,Samsung,1034.9,1429.77,27.6,3.2,401,6,2023-07-01
+prod_00442,Uniqlo Air Purifier,Home & Garden,Uniqlo,1143.76,1281.43,10.7,3.5,929,56,2024-09-29
+prod_00443,Python Programming Guide,Books,Zara,1111.27,1466.31,24.2,3.8,276,168,2025-06-08
+prod_00444,Apple Running Shoes,Sports,Apple,1029.61,1273.5,19.2,4.2,115,28,2024-04-16
+prod_00445,Apple T-Shirt,Fashion,Apple,439.56,600.8,26.8,3.2,516,92,2023-01-08
+prod_00446,Python Programming Guide,Books,Xiaomi,1000.89,1007.52,0.7,3.1,992,160,2025-05-13
+prod_00447,Data Science Handbook,Books,Xiaomi,1445.69,1784.94,19.0,3.9,174,46,2024-09-28
+prod_00448,Nike Headphones,Electronics,Nike,945.79,1156.22,18.2,3.1,361,88,2024-03-22
+prod_00449,Nike Headphones,Electronics,Nike,1080.37,1496.31,27.8,3.4,40,137,2025-07-07
+prod_00450,Adidas Coffee Maker,Home & Garden,Adidas,256.01,273.84,6.5,3.7,235,21,2023-07-16
+prod_00451,Sony Coffee Maker,Home & Garden,Sony,706.23,989.07,28.6,3.7,574,166,2024-10-02
+prod_00452,Uniqlo Building Blocks,Toys,Uniqlo,923.74,1049.68,12.0,3.4,187,50,2023-08-27
+prod_00453,Xiaomi Running Shoes,Sports,Xiaomi,914.93,1188.11,23.0,3.6,823,52,2022-11-27
+prod_00454,Xiaomi Building Blocks,Toys,Xiaomi,679.89,876.29,22.4,4.6,647,27,2023-11-17
+prod_00455,Xiaomi Car Accessories,Automotive,Xiaomi,1026.25,1155.93,11.2,4.3,75,115,2025-02-09
+prod_00456,Zara Laptop Ultra,Electronics,Zara,1089.24,1194.4,8.8,4.7,670,135,2024-08-04
+prod_00457,Samsung Car Accessories,Automotive,Samsung,362.01,400.81,9.7,4.6,376,62,2025-05-17
+prod_00458,Data Science Handbook,Books,LG,301.43,332.83,9.4,3.0,714,2,2023-07-27
+prod_00459,Adidas Makeup Kit,Beauty,Adidas,1044.99,1156.57,9.6,3.5,77,98,2024-10-13
+prod_00460,Python Programming Guide,Books,Zara,229.78,250.69,8.3,4.2,914,171,2025-05-15
+prod_00461,Xiaomi Motor Oil,Automotive,Xiaomi,1538.86,1636.12,5.9,3.1,515,127,2025-06-13
+prod_00462,Xiaomi Running Shoes,Sports,Xiaomi,276.99,291.98,5.1,3.7,402,60,2023-12-18
+prod_00463,Sony Smartphone Pro,Electronics,Sony,969.95,1305.15,25.7,5.0,943,118,2024-10-12
+prod_00464,Xiaomi Vacuum Cleaner,Home & Garden,Xiaomi,1301.99,1796.87,27.5,3.1,670,4,2025-05-20
+prod_00465,Apple Building Blocks,Toys,Apple,1340.01,1460.34,8.2,4.5,419,20,2024-01-08
+prod_00466,Uniqlo Perfume,Beauty,Uniqlo,129.1,141.79,9.0,5.0,515,164,2022-11-13
+prod_00467,LG Sneakers,Fashion,LG,233.53,250.35,6.7,4.7,152,26,2024-09-03
+prod_00468,Adidas Car Accessories,Automotive,Adidas,173.49,221.63,21.7,4.6,845,137,2025-07-25
+prod_00469,Sony Smartphone Pro,Electronics,Sony,190.47,266.07,28.4,3.2,347,176,2023-11-11
+prod_00470,Sony Tire Set,Automotive,Sony,366.37,382.16,4.1,3.9,139,81,2023-03-01
+prod_00471,H&M Coffee Maker,Home & Garden,H&M,1032.96,1291.96,20.0,4.0,256,147,2024-03-28
+prod_00472,Sony Building Blocks,Toys,Sony,1331.23,1556.66,14.5,3.2,794,75,2023-08-02
+prod_00473,LG Sneakers,Fashion,LG,1557.2,1679.31,7.3,4.3,886,52,2023-08-19
+prod_00474,Apple Jeans,Fashion,Apple,166.86,167.52,0.4,3.4,848,98,2025-01-19
+prod_00475,Apple Building Blocks,Toys,Apple,375.95,456.89,17.7,4.1,889,80,2023-06-13
+prod_00476,Uniqlo Yoga Mat,Sports,Uniqlo,297.28,350.3,15.1,4.8,234,93,2024-07-01
+prod_00477,H&M Board Game,Toys,H&M,392.36,445.89,12.0,3.1,443,42,2023-08-28
+prod_00478,H&M Yoga Mat,Sports,H&M,214.59,249.03,13.8,3.2,122,61,2025-07-14
+prod_00479,Nike Building Blocks,Toys,Nike,84.75,105.74,19.9,3.9,281,30,2022-12-24
+prod_00480,LG Jeans,Fashion,LG,408.33,463.53,11.9,3.9,351,13,2024-05-05
+prod_00481,LG Running Shoes,Sports,LG,129.08,145.81,11.5,4.9,208,75,2025-01-18
+prod_00482,Nike Tire Set,Automotive,Nike,480.89,588.06,18.2,4.0,121,174,2025-06-09
+prod_00483,Python Programming Guide,Books,Apple,200.88,274.62,26.9,4.2,254,16,2024-02-02
+prod_00484,Sony T-Shirt,Fashion,Sony,1399.4,1771.07,21.0,3.8,412,25,2024-12-17
+prod_00485,Uniqlo Running Shoes,Sports,Uniqlo,360.09,383.51,6.1,4.3,732,152,2024-10-09
+prod_00486,Apple Smartphone Pro,Electronics,Apple,814.6,1031.32,21.0,4.0,322,176,2024-11-28
+prod_00487,LG Air Purifier,Home & Garden,LG,175.01,185.44,5.6,4.8,155,3,2023-09-17
+prod_00488,Xiaomi Building Blocks,Toys,Xiaomi,64.13,90.61,29.2,4.8,184,173,2023-06-13
+prod_00489,H&M Laptop Ultra,Electronics,H&M,1601.1,1940.61,17.5,4.0,263,120,2025-04-09
+prod_00490,Samsung Headphones,Electronics,Samsung,1256.1,1376.09,8.7,3.5,525,42,2023-06-18
+prod_00491,Apple Vacuum Cleaner,Home & Garden,Apple,501.75,643.97,22.1,3.9,762,89,2024-01-19
+prod_00492,Uniqlo Fitness Tracker,Sports,Uniqlo,757.27,760.36,0.4,3.7,737,85,2023-01-30
+prod_00493,Apple Building Blocks,Toys,Apple,1084.21,1387.28,21.8,3.0,430,56,2023-09-24
+prod_00494,LG Coffee Maker,Home & Garden,LG,91.16,110.26,17.3,4.4,451,92,2024-12-31
+prod_00495,Adidas Jeans,Fashion,Adidas,920.3,1295.53,29.0,4.8,705,139,2023-01-22
+prod_00496,Zara Action Figure,Toys,Zara,451.77,567.35,20.4,4.8,410,150,2024-05-29
+prod_00497,Sony Running Shoes,Sports,Sony,109.84,130.14,15.6,3.7,637,31,2024-05-13
+prod_00498,H&M Building Blocks,Toys,H&M,434.29,612.4,29.1,4.0,711,37,2024-04-09
+prod_00499,Zara Coffee Maker,Home & Garden,Zara,1014.01,1266.4,19.9,3.6,305,16,2023-05-04
+prod_00500,Samsung Fitness Tracker,Sports,Samsung,118.83,129.86,8.5,4.2,64,125,2024-09-20
